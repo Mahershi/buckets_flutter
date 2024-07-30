@@ -8,7 +8,7 @@ import 'package:buckets/src/config.dart';
 import 'package:buckets/src/exceptions.dart';
 import 'package:buckets/src/snashot_bloc.dart';
 import 'package:buckets/src/user.dart';
-import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 // TODO: The problem here is having a single SnapshotBloc controlleer
 // when multiple buckets are being read, their event goes through single SnapshotBlock hence all the listeners will get events
@@ -31,8 +31,10 @@ class UserBucket{
 
   UserBucket(this._id, this._user, this._bucket, this._access, this._joinedAt);
 
-  IOWebSocketChannel? _wsChannel;
+  WebSocketChannel? _wsChannel;
   SnapshotBloc? _snapshotBloc;
+
+  BucketSnapshot? _prevSnapshot;
 
 
   Map<String, dynamic> _set(String field, String value){
@@ -45,10 +47,26 @@ class UserBucket{
     };
   }
 
-  IOWebSocketChannel _updateChannel(){
-    return IOWebSocketChannel.connect(
-        '${Config.wsHost}${Config.webSocketURL}${_bucket.id}/',
-        headers: BucketAuth.headers()
+  Map<String, dynamic> _set_array_element(String array_path, String value, String type){
+    return <String, dynamic>{
+      "type": "add_array_element",
+      "data": {
+        "key": array_path,
+        "value": value,
+        "type": type
+      }
+    };
+  }
+
+  // TODO: implement for setting array elements.
+  Future<void> setArrayElement() async{
+
+  }
+
+  WebSocketChannel _updateChannel(){
+    Uri uri = Uri.parse('${Config.wsHost}${Config.webSocketURL}${_bucket.id}/?Authorization=' + BucketAuth.headers()["Authorization"]!);
+    return WebSocketChannel.connect(
+      uri,
     );
   }
 
@@ -57,11 +75,11 @@ class UserBucket{
   // It can be ignored for now.
   Future<void> setString({String? field, String? value}) async {
     try{
-      IOWebSocketChannel localWSChannel = _updateChannel();
+      WebSocketChannel localWSChannel = _updateChannel();
 
       Map<String, dynamic> jsonData = _set(field!, value!);
       jsonData['data']['type'] = Config.typeMap['STRING'].toString();
-
+      print(jsonData);
       localWSChannel.sink.add(jsonEncode(jsonData));
       await localWSChannel.sink.close();
     }catch(e){
@@ -71,7 +89,7 @@ class UserBucket{
 
   Future<void> setInt({String? field, int? value}) async {
     try{
-      IOWebSocketChannel localWSChannel = _updateChannel();
+      WebSocketChannel localWSChannel = _updateChannel();
 
       Map<String, dynamic> jsonData = _set(field!, value.toString());
       jsonData['data']['type'] = Config.typeMap['NUMBER'].toString();
@@ -85,7 +103,7 @@ class UserBucket{
 
   Future<void> setDouble({String? field, double? value}) async {
     try{
-      IOWebSocketChannel localWSChannel = _updateChannel();
+      WebSocketChannel localWSChannel = _updateChannel();
 
       Map<String, dynamic> jsonData = _set(field!, value.toString());
       jsonData['data']['type'] = Config.typeMap['NUMBER'].toString();
@@ -99,7 +117,7 @@ class UserBucket{
 
   Future<void> setBool({String? field, bool? value}) async {
     try{
-      IOWebSocketChannel localWSChannel = _updateChannel();
+      WebSocketChannel localWSChannel = _updateChannel();
 
       Map<String, dynamic> jsonData = _set(field!, value.toString());
       jsonData['data']['type'] = Config.typeMap['BOOLEAN'].toString();
@@ -111,9 +129,71 @@ class UserBucket{
     }
   }
 
+  /*
+  * TODO: Will probably be use less because map will be created WITH some data and not empty.
+  * To create a Map datatype. Technically creates a Sub Bucket on the backend side. Therefore known as Bucket.
+  * */
+  Future<void> createEmptyMap({String? field}) async {
+    try{
+      WebSocketChannel localWSChannel = _updateChannel();
+
+      Map<String, dynamic> jsonData = _set(field!, '');
+      jsonData['data']['type'] = Config.typeMap['BUCKET'].toString();
+
+      localWSChannel.sink.add(jsonEncode(jsonData));
+      await localWSChannel.sink.close();
+    }catch(e){
+      print(e);
+    }
+  }
+
+  // Recursively sets a Map field considering presence of sub maps. Adv Testing pending, basics tested.
+  Future<void> setMap({String? field, Map<dynamic, dynamic> data = const {}}) async {
+    try{
+      WebSocketChannel localWSChannel = _updateChannel();
+
+      // Create the map field
+      Map<String, dynamic> jsonData = _set(field!, '');
+      jsonData['data']['type'] = Config.typeMap['BUCKET'].toString();
+      print(jsonData);
+      localWSChannel.sink.add(jsonEncode(jsonData));
+
+      // Set Map key value pairs.
+      data.forEach((key, value) async {
+        print(value.runtimeType);
+        if (value.runtimeType == String){
+          await setString(field: field+"."+key, value: value);
+        }else if(value.runtimeType == bool){
+          await setBool(field: field+"."+key, value: value);
+        }else if(value.runtimeType == int){
+          await setInt(field: field+"."+key, value: value);
+        }else if(value.runtimeType == double){
+          await setDouble(field: field+"."+key, value: value);
+        }else if(value is Map){
+          print("Adding Sub Map: " + value.toString());
+          // TODO: Recursive call for nested Maps
+          // Need to attach bucket name for key hierarchy
+          // SubBucket.SubBucket => hierarchy
+          // TODO: this recusive call will create new WS conections. Improve to use the existing one.
+          await setMap(field: field+'.'+key, data:value);
+        }else{
+          // Unsupported Data Type.
+          // TODO: Handle Exception.
+          print("Unsupported Type");
+        }
+      });
+
+
+      // Close after updating Map values.
+      await localWSChannel.sink.close();
+    }catch(e){
+      print(e);
+    }
+  }
+
   Future<void> removeField({String? field}) async {
     try{
-      IOWebSocketChannel localWSChannel = _updateChannel();
+      WebSocketChannel localWSChannel = _updateChannel();
 
       Map<String, dynamic> jsonData = {
         "type": "remove_field",
@@ -129,32 +209,41 @@ class UserBucket{
     }
   }
 
+  Future<void> _sendPrevSnapshot() async{
+    await Future.delayed(Duration(seconds: 1));
+    _snapshotBloc!.sink.add(
+        _prevSnapshot!
+    );
+  }
+
+  // TODO: Implement Reconnection in onDone in the _wsChannel.stream.listen
   Stream<BucketSnapshot> snapshots(){
-    print(_wsChannel != null);
     if (_wsChannel != null){
-      print("Returnined existing");
+      _sendPrevSnapshot();
       return _snapshotBloc!.stream;
     }
     try{
-      print("Creating new");
-      // final wsURL = Uri.parse('${Config.host}${Config.webSocketURL}${_bucket.id}/');
-      _wsChannel = IOWebSocketChannel.connect(
-          '${Config.wsHost}${Config.webSocketURL}${_bucket.id}/',
-        headers: BucketAuth.headers()
+      Uri uri = Uri.parse('${Config.wsHost}${Config.webSocketURL}${_bucket.id}/?Authorization=' + BucketAuth.headers()["Authorization"]!);
+      _wsChannel = WebSocketChannel.connect(
+        uri,
       );
 
+
+      // TODO: creating khudka SnapshotBloc object then how is it sharing with other bucket as per another TODO task? Test!
+      // TODO: this has been basic tested and doesnt seem to overlap with other UserBuckets. Intense testing is pending.
       // Create the local stream -> SnapshotBloc -> for this bucket.
       _snapshotBloc = SnapshotBloc();
       
       _wsChannel!.stream.listen((event) {
         Map<String, dynamic> jsonEvent = jsonDecode(event);
-        _snapshotBloc!.sink.add(
-          BucketSnapshot.fromJson(
+        _prevSnapshot = BucketSnapshot.fromJson(
             jsonEvent['data']['id'].toString(),
             jsonEvent['data']['name'],
             jsonEvent['data']['content'],
             jsonEvent['type']
-          )
+        );
+        _snapshotBloc!.sink.add(
+          _prevSnapshot!
         );
       });
 

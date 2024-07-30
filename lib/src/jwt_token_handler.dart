@@ -30,8 +30,11 @@ class JWTTokenHandler{
   // Async method to refresh token in background
   void refreshToken() async {
     while(_shouldRefresh){
+      // print("Waiting for refresh");
+      await Future.delayed(Duration(minutes: _refreshInterval), (){});
       refreshed = false;
       try{
+        // print("refreshing");
         var response = await http.post(
             Uri.parse(Config.host + Config.tokenRefreshURL),
             body: {
@@ -43,12 +46,15 @@ class JWTTokenHandler{
           _accessToken = json['access'];
           refreshed = true;
         }else{
+          // print("Refresh failed: " + response.statusCode.toString());
           refreshed = false;
         }
       }catch(e){
+        // print("Refresh Exception: ");
+        // print(e);
         refreshed = false;
       }
-      await Future.delayed(Duration(minutes: _refreshInterval), (){});
+
     }
 
   }

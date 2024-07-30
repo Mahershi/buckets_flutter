@@ -20,12 +20,13 @@ class BucketAuth{
   static Future<bool> loginWithCredentials(String email, String password) async {
     _loggedIn = false;
     try{
+      print("Added Headers");
       var response = await http.post(
         Uri.parse(Config.host + Config.tokenURL),
         body: {
           "email": email,
           "password": password
-        }
+        },
       );
       if (response.statusCode == 200){
         var json = jsonDecode(response.body);

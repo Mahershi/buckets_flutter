@@ -15,6 +15,9 @@ export 'src/auth.dart' show BucketAuth;
 export 'src/user_bucket.dart' show UserBucket;
 export 'src/bucket_snapshot.dart' show BucketSnapshot;
 export 'src/user.dart' show User;
+export 'src/bucket.dart' show Bucket;
+export 'src/access.dart' show Access;
+export 'src/field_type.dart' show FieldType;
 
 
 class Buckets{
@@ -35,16 +38,15 @@ class Buckets{
           ),
           headers: BucketAuth.headers()
         );
-
         if(response.statusCode == 200){
           var jsonData = jsonDecode(response.body)['data'];
 
           UserBucket ub = UserBucket(
-            jsonData['id'].toString(),
-            User(jsonData['user']['id'].toString(), jsonData['user']['name'], jsonData['user']['email']),
-            Bucket(jsonData['bucket']['id'].toString(), jsonData['bucket']['name'], jsonData['bucket']['created_at']),
-            Access(jsonData['access']['id'].toString(), jsonData['access']['type']),
-            jsonData['joined_at']
+              jsonData['id'].toString(),
+              User(jsonData['user']['id'].toString(), jsonData['user']['name'], jsonData['user']['email']),
+              Bucket(jsonData['bucket']['id'].toString(), jsonData['bucket']['name'], jsonData['bucket']['created_at']),
+              Access(jsonData['access']['id'].toString(), jsonData['access']['type']),
+              jsonData['joined_at']
           );
 
           _loadedUserBuckets[bucketId] = ub;
@@ -67,7 +69,6 @@ class Buckets{
       }
     }else{
       throw UnauthAccess("User not logged in! Use BucketAuth to login user!");
-
     }
   }
 }

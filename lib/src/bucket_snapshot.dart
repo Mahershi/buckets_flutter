@@ -1,3 +1,5 @@
+import 'package:buckets/src/field_type.dart';
+
 class BucketSnapshot{
   final String _id;
   final String _name;
@@ -18,5 +20,12 @@ class BucketSnapshot{
       return data[field]['value'];
     }
     return null;
+  }
+
+  FieldType typeOf(Object field){
+    if (data.containsKey(field)){
+      return type_map[data[field]['type']];
+    }
+    return type_map['UNKNOWN'];
   }
 }

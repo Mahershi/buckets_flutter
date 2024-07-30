@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'bucket_snapshot.dart';
 
-enum SnapshotEvent {add_field, update}
+// enum SnapshotEvent {add_field, update}
 
 class SnapshotBloc{
   // Making it a broadcast stream -> read websocket once but use data multiple places.

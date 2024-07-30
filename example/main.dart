@@ -11,9 +11,9 @@ void removeFieldTest() async {
   bool authSuccess = await BucketAuth.loginWithCredentials("mahershi1999@gmail.com", "mahershi");
   print("AUth: $authSuccess");
 
-  UserBucket ub = await Buckets.bucket('7');
+  UserBucket ub = await Buckets.bucket('1');
 
-  ub.removeField(field: "NEW STR");
+  ub.removeField(field: "test_field_str");
 }
 
 void setStringTest() async {
