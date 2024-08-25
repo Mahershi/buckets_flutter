@@ -64,6 +64,7 @@ class UserBucket{
   }
 
   WebSocketChannel _updateChannel(){
+    print("Opening WS: " + Config.wsHost + Config.webSocketURL + _bucket.id);
     Uri uri = Uri.parse('${Config.wsHost}${Config.webSocketURL}${_bucket.id}/?Authorization=' + BucketAuth.headers()["Authorization"]!);
     return WebSocketChannel.connect(
       uri,
@@ -76,7 +77,6 @@ class UserBucket{
   Future<void> setString({String? field, String? value}) async {
     try{
       WebSocketChannel localWSChannel = _updateChannel();
-
       Map<String, dynamic> jsonData = _set(field!, value!);
       jsonData['data']['type'] = Config.typeMap['STRING'].toString();
       print(jsonData);
@@ -170,8 +170,9 @@ class UserBucket{
         }else if(value.runtimeType == double){
           await setDouble(field: field+"."+key, value: value);
         }else if(value is Map){
+          // Aug 25: Seems to be working fine except optimization issue.
           print("Adding Sub Map: " + value.toString());
-          // TODO: Recursive call for nested Maps
+          // Recursive call for nested Maps
           // Need to attach bucket name for key hierarchy
           // SubBucket.SubBucket => hierarchy
           // TODO: this recusive call will create new WS conections. Improve to use the existing one.
@@ -189,6 +190,7 @@ class UserBucket{
     }catch(e){
       print(e);
     }
+    print("Finished");
   }
 
   Future<void> removeField({String? field}) async {

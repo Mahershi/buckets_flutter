@@ -21,6 +21,7 @@ class BucketAuth{
     _loggedIn = false;
     try{
       print("Added Headers");
+      print(Config.host + Config.tokenURL);
       var response = await http.post(
         Uri.parse(Config.host + Config.tokenURL),
         body: {

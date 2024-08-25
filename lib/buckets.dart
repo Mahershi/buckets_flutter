@@ -20,9 +20,16 @@ export 'src/access.dart' show Access;
 export 'src/field_type.dart' show FieldType;
 
 
+
 class Buckets{
   static final Map<String, UserBucket> _loadedUserBuckets = <String, UserBucket>{};
 
+  static void switchToDevelopment(){
+    Config.setEnvironment(Environment.DEVELOPMENT);
+  }
+  static void switchToStaging(){
+    Config.setEnvironment(Environment.STAGING);
+  }
 
   static Future<UserBucket> bucket(String bucketId) async {
     if (BucketAuth.loggedIn){
