@@ -14,19 +14,16 @@ void main() async {
   print(ub.bucket.name);
   print("Bucket Fetch Time: " + stopwatch.elapsed.toString());
   stopwatch.reset();
-  // ub.removeField(field: 'DartMap');
 
-  // await ub.setString(field: "new", value: "test");
-  await ub.setMap(
-    field: "DartMap",
-    data: {
-      "one": "two",
-      "submap": {
-        "one": "111111",
-        "two": "222222"
-      }
-    }
+  await ub.setArray(
+    field: "MyArray",
+    items: [
+      "Hello",
+      3124,
+      true
+    ]
   );
+
   print("Update Time: " + stopwatch.elapsed.toString());
 }
 

@@ -58,10 +58,7 @@ class UserBucket{
     };
   }
 
-  // TODO: implement for setting array elements.
-  Future<void> setArrayElement() async{
 
-  }
 
   WebSocketChannel _updateChannel(){
     print("Opening WS: " + Config.wsHost + Config.webSocketURL + _bucket.id);
@@ -147,12 +144,72 @@ class UserBucket{
     }
   }
 
+
+  // Creates Array if not existing and adds the element is any passed.
+  Future<void> setArray({String? field, List<dynamic> items = const []}) async {
+    print(items);
+    try{
+
+      // Created the array first, if it exists, existing data is NOT lost.
+      WebSocketChannel localWSChannel = _updateChannel();
+      Map<String, dynamic> jsonData = _set(field!, '');
+      jsonData['data']['type'] = Config.typeMap['ARRAY'].toString();
+      localWSChannel.sink.add(jsonEncode(jsonData));
+
+      // Close the channel as the element addition will open its own channel.
+      // if this is not awaited, the first element addition might try to use this and fail due to close in process.
+      await localWSChannel.sink.close();
+
+      // Future.forEach so that each iteration waits for the prev one to finish. to respect the indexing.
+      // TODO: need to optimized to use existing WS Channel.
+      Future.forEach(items, (element) async {
+        await setArrayElement(field: field, value: element);
+      });
+    }catch(e){
+      print(e);
+    }
+  }
+
+  // TODO: field here needs to be prepared by user i.e. in case of hierarchy.
+  // EG: user needs to send SubB1.B2....BN
+  // Does not create Array field if it does not exists. Adds the element if the array field exists.
+  // TODO: handle exception in case array field does not exist -> Implement on backend first.
+  // Always inserts at the end of array -> KNOWN Limitation.
+  Future<void> setArrayElement({String? field, dynamic? value}) async{
+    print("Element: " + value.toString());
+    try{
+      WebSocketChannel localWSChannel = _updateChannel();
+
+      Map<String, dynamic> jsonData;
+
+      if (value.runtimeType == String){
+        jsonData = _set_array_element(field!, value, Config.typeMap['STRING'].toString());
+        localWSChannel.sink.add(jsonEncode(jsonData));
+      }else if(value.runtimeType == bool){
+        jsonData = _set_array_element(field!, value.toString(), Config.typeMap['BOOLEAN'].toString());
+        localWSChannel.sink.add(jsonEncode(jsonData));
+      }else if(value.runtimeType == int || value.runtimeType == double){
+        jsonData = _set_array_element(field!, value.toString(), Config.typeMap['NUMBER'].toString());
+          localWSChannel.sink.add(jsonEncode(jsonData));
+      }else{
+        print("Invalid Datataype in Add Array Element: Supported Types: STRING, INTEGER, DOUBLE, BOOLEAN");
+      }
+
+      await localWSChannel.sink.close();
+    }catch(e){
+      print(e);
+    }
+  }
+
+
   // Recursively sets a Map field considering presence of sub maps. Adv Testing pending, basics tested.
+  // TODO: field here needs to be prepared by user i.e. in case of hierarchy.
+  // EG: user needs to send SubB1.B2....BN
   Future<void> setMap({String? field, Map<dynamic, dynamic> data = const {}}) async {
     try{
       WebSocketChannel localWSChannel = _updateChannel();
 
-      // Create the map field
+      // Create the empty map field
       Map<String, dynamic> jsonData = _set(field!, '');
       jsonData['data']['type'] = Config.typeMap['BUCKET'].toString();
       print(jsonData);
