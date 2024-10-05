@@ -17,6 +17,8 @@ class Access{
   final String _id;
   final String _type;
 
+  String get type => _type;
+
   bool _WRITE_ACCESS = false;
   bool _READ_ACCESS = false;
 

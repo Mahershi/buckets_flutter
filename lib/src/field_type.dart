@@ -20,4 +20,11 @@ class FieldType{
   int id;
 
   FieldType(this.id, this.type);
+
+  isBasic(){
+    if (this.type == "STRING" || this.type == "NUMBER" || this.type == "BOOLEAN"){
+      return true;
+    }
+    return false;
+  }
 }
