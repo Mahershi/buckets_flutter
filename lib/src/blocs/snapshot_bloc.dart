@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'bucket_snapshot.dart';
+import '../bucket_snapshot.dart';
 
 // enum SnapshotEvent {add_field, update}
 

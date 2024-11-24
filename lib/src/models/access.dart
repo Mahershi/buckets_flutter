@@ -30,5 +30,18 @@ class Access{
     _READ_ACCESS = type_map[_type]['READ_ACCESS'];
   }
 
+  static final Access OWNER = Access('1', 'Owner');
+  static final Access EDITOR = Access('1', 'Editor');
+  static final Access VIEWER = Access('1', 'Viewer');
 
+  @override
+  bool operator ==(Object other){
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    return other is Access && this._id == other._id && this._type == other._type;
+  }
 }

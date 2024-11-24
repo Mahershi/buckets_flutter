@@ -4,8 +4,8 @@ import 'dart:convert';
 
 import 'package:buckets/buckets.dart';
 import 'package:buckets/src/config.dart';
-import 'package:buckets/src/exceptions.dart';
-import 'package:buckets/src/snapshot_bloc.dart';
+import 'package:buckets/src/models/exceptions.dart';
+import 'package:buckets/src/blocs/snapshot_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -89,7 +89,7 @@ class UserBucket{
     _logger.fine("setString() field: " + field! + ", value: " + value!);
     try{
       WebSocketChannel localWSChannel = _updateChannel();
-      Map<String, dynamic> jsonData = _set(field!, value!);
+      Map<String, dynamic> jsonData = _set(field, value);
       jsonData['data']['type'] = Config.typeMap['STRING'].toString();
 
       _logger.fine("setString() Message: " + jsonData.toString());
@@ -106,7 +106,7 @@ class UserBucket{
     try{
       WebSocketChannel localWSChannel = _updateChannel();
 
-      Map<String, dynamic> jsonData = _set(field!, value.toString());
+      Map<String, dynamic> jsonData = _set(field, value.toString());
       jsonData['data']['type'] = Config.typeMap['NUMBER'].toString();
 
       _logger.fine("setInt() Message: " + jsonData.toString());
@@ -139,7 +139,7 @@ class UserBucket{
     try{
       WebSocketChannel localWSChannel = _updateChannel();
 
-      Map<String, dynamic> jsonData = _set(field!, value.toString());
+      Map<String, dynamic> jsonData = _set(field, value.toString());
       jsonData['data']['type'] = Config.typeMap['BOOLEAN'].toString();
       _logger.fine("setBool() Message: " + jsonData.toString());
       localWSChannel.sink.add(jsonEncode(jsonData));
@@ -157,7 +157,7 @@ class UserBucket{
     try{
       WebSocketChannel localWSChannel = _updateChannel();
 
-      Map<String, dynamic> jsonData = _set(field!, '');
+      Map<String, dynamic> jsonData = _set(field, '');
       jsonData['data']['type'] = Config.typeMap['BUCKET'].toString();
       _logger.fine("createEmptyMap() Message: " + jsonData.toString());
 
@@ -176,7 +176,7 @@ class UserBucket{
 
       // Created the array first, if it exists, existing data is NOT lost.
       WebSocketChannel localWSChannel = _updateChannel();
-      Map<String, dynamic> jsonData = _set(field!, '');
+      Map<String, dynamic> jsonData = _set(field, '');
       jsonData['data']['type'] = Config.typeMap['ARRAY'].toString();
       _logger.fine("setArray() Message: " + jsonData.toString());
 
@@ -372,7 +372,7 @@ class UserBucket{
 
         });
         _logger.fine("Snapshot Listener Attached!");
-      } catch (e, s) {
+      } catch (e) {
         _logger.severe("snapshots() Excepetion: " + e.toString());
       }
       _logger.fine("snapshot() Success");

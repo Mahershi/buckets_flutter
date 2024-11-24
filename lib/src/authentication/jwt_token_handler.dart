@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
-import 'config.dart';
+import '../config.dart';
 
 final Logger _logger = Logger("JWTToken");
 
@@ -32,6 +32,7 @@ class JWTTokenHandler{
   }
 
   // Async method to refresh token in background
+  // TODO: if stop is called, this loop doesnt stop until it finished its wait of _refreshInterval. there is no event handling.
   void refreshToken() async {
     while(_shouldRefresh){
       // print("Waiting for refresh");
@@ -64,12 +65,21 @@ class JWTTokenHandler{
       }
 
     }
-
+    _logger.info("Stopped JWT Refresh Loop");
   }
 
   Map<String, String> authHeader(){
     return {
       "Authorization": "Bearer $_accessToken"
+    };
+  }
+
+  Map<String, dynamic> authWSMessage(){
+    return {
+      "type": "authentication",
+      "data": {
+        "authentication": "Bearer $_accessToken"
+      }
     };
   }
 }

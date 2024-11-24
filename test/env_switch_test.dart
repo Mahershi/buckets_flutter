@@ -1,6 +1,6 @@
 import 'package:buckets/src/config.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:buckets/src/auth.dart' as auth;
+import 'package:buckets/src/authentication/auth.dart' as auth;
 
 void main(){
   test('ENV Switch DEVELOPMENT', () async {

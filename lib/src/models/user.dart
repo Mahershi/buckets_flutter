@@ -8,4 +8,9 @@ class User{
   String get email => _email;
 
   User(this._id, this._name, this._email);
+
+  User.empty() :
+      _id = "",
+      _name = "",
+      _email = "";
 }

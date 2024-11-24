@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:buckets/src/jwt_token_handler.dart' as jwt;
+import 'package:buckets/src/authentication/jwt_token_handler.dart' as jwt;
 
 void main(){
   test('Refresh JWT', () async {

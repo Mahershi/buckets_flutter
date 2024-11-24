@@ -20,6 +20,17 @@ class BucketNotFound implements Exception{
   }
 }
 
+class WsException implements Exception{
+  String cause;
+
+  WsException(this.cause);
+
+  @override
+  String toString(){
+    return this.cause;
+  }
+}
+
 class UnknownException implements Exception{
   String cause;
 

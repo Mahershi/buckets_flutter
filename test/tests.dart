@@ -4,7 +4,7 @@ import 'package:buckets/buckets.dart';
 
 void main(){
   test('Should Work', () async {
-    await BucketAuth.loginWithCredentials("mahershi1999@gmail.com", "mahershi");
+    await BucketAuth.userLoginWithCredentials("mahershi1999@gmail.com", "mahershi");
     var ub = await Buckets.bucket('1');
     var ub2 = await Buckets.bucket('10');
 

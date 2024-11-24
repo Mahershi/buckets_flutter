@@ -1,5 +1,5 @@
 import 'package:buckets/buckets.dart';
-import 'package:buckets/src/field_type.dart';
+import 'package:buckets/src/models/field_type.dart';
 import 'package:logging/logging.dart';
 
 final Logger _logger = Logger('BucketSnapshot');

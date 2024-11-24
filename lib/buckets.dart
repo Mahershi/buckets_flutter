@@ -2,25 +2,26 @@ library buckets;
 
 import 'dart:convert';
 
+import 'package:buckets/src/models/project_client.dart';
 import 'package:logging/logging.dart';
 
-import 'src/access.dart';
-import 'src/auth.dart';
-import 'src/bucket.dart';
+import 'src/models/access.dart';
+import 'src/authentication/auth.dart';
+import 'src/models/bucket.dart';
 import 'src/config.dart';
-import 'src/exceptions.dart';
-import 'src/user.dart';
+import 'src/models/exceptions.dart';
+import 'src/models/user.dart';
 import 'src/user_bucket.dart';
 import 'src/logger.dart';
 import 'package:http/http.dart' as http;
 
-export 'src/auth.dart' show BucketAuth;
+export 'src/authentication/auth.dart' show BucketAuth;
 export 'src/user_bucket.dart' show UserBucket;
 export 'src/bucket_snapshot.dart' show BucketSnapshot;
-export 'src/user.dart' show User;
-export 'src/bucket.dart' show Bucket;
-export 'src/access.dart' show Access;
-export 'src/field_type.dart' show FieldType;
+export 'src/models/user.dart' show User;
+export 'src/models/bucket.dart' show Bucket;
+export 'src/models/access.dart' show Access;
+export 'src/models/field_type.dart' show FieldType;
 
 final Logger _logger = Logger('Buckets');
 
@@ -38,6 +39,14 @@ class Buckets{
     Config.setEnvironment(Environment.STAGING);
   }
 
+  static ProjectClient client(){
+    if (BucketAuth.loggedIn)
+      return BucketAuth.curClient;
+    throw UnauthAccess("Client not Authenticated! Use BucketAuth.clientLogin()");
+  }
+
+  // TODO: DELETE, wont need this as client api will not grep all UserBucket
+  // or any user related transactions.
   static Future<UserBucket> bucket(String bucketId) async {
     if (BucketAuth.loggedIn){
       if(_loadedUserBuckets.containsKey(bucketId)){
