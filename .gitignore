@@ -30,4 +30,4 @@ migrate_working_dir/
 build/
 
 # Developer Defined
-lib/src/config.dart
+
