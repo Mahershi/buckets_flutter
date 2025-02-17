@@ -46,7 +46,7 @@ class BucketAuth{
         _loggedIn = true;
         _logger.info("Client Logged In");
 
-        return await getClient();
+        return await _getClient();
       }
       _logger.warning("Auth failed");
       return false;
@@ -77,7 +77,7 @@ class BucketAuth{
         _loggedIn = true;
         _logger.info("User Logged In");
 
-        await setCurUser();
+        await _setCurUser();
 
         return true;
       }
@@ -89,7 +89,7 @@ class BucketAuth{
     }
   }
 
-  static Future<bool> getClient() async {
+  static Future<bool> _getClient() async {
     try{
       _logger.info("Auth getClient URL: " + Config.host + Config.getClient);
       var response = await http.get(
@@ -129,7 +129,7 @@ class BucketAuth{
     return false;
   }
 
-  static Future<void> setCurUser() async {
+  static Future<void> _setCurUser() async {
     try{
       _logger.info("Auth User URL: " + Config.host + Config.userURL);
       var response = await http.get(

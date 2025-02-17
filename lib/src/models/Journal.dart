@@ -1,0 +1,70 @@
+import 'dart:convert';
+
+import 'package:buckets/src/models/Project.dart';
+import 'package:buckets/src/references/JournalReference.dart';
+import 'package:logging/logging.dart';
+import 'package:http/http.dart' as http;
+
+import '../../buckets.dart';
+import 'Record.dart';
+import '../config.dart';
+import 'exceptions.dart';
+
+final Logger _logger = Logger('Journal');
+
+class Journal {
+  final Project _project;
+  final String _name;
+  final String _id;
+  final String _created_at;
+  final String _created_by_user;
+
+  String get id => _id;
+  String get name => _name;
+  String get created_at => _created_at;
+  String get created_by_user => _created_by_user;
+  Project get project => _project;
+
+  Journal(this._project, this._id, this._name, this._created_at, this._created_by_user);
+
+  Journal.empty():
+      _project = Project.empty(),
+    _id = '',
+    _name = '',
+    _created_at = '',
+    _created_by_user = '';
+
+
+  Future<Record> record(String recordId) async {
+    try{
+      var response = await http.get(
+          Uri.parse(
+              "${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record_id=${recordId}"
+          ),
+          headers: BucketAuth.headers()
+      );
+      if (response.statusCode == 200){
+        var jsonData = jsonDecode(response.body)['data'];
+        return Record(
+          this,
+          jsonData['id'].toString(),
+          jsonData['name'].toString(),
+          jsonData['created_at'].toString()
+        );
+      }
+    }catch(e){
+      _logger.warning("Error Fetching Record");
+      throw UnknownException("Error Fetching Record");
+    }
+    return Record.empty();
+  }
+
+  bool isNull(){
+    return this._id == '';
+  }
+
+  JournalReference getReference(){
+    String wsUrl = '${Config.wsHost}${Config.journalWebSocketURL}${this._id}';
+    return JournalReference(wsUrl);
+  }
+}

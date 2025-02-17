@@ -3,7 +3,7 @@ final Map<String, dynamic> type_map = {
   'NUMBER': FieldType.NUMBER,
   'BOOLEAN': FieldType.BOOLEAN,
   'UNKNOWN': FieldType.UNKNOWN,
-  'BUCKET': FieldType.MAP,
+  'MAP': FieldType.MAP,
   'ARRAY': FieldType.ARRAY
 };
 

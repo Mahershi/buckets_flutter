@@ -15,13 +15,13 @@ Handles WS Connection, Authentication, Buffering prev snapshot to send to new co
 TODO: implement disconnection of WS channel for live snapshots
  */
 abstract class Reference<T>{
-  WSHandler? wsHandler;
+  WSHandler? _wsHandler;
   // stream ID:2
   StreamController<Snapshot>? controller;
   Snapshot? _prevSnapshot;
 
   Reference(String wsUrl){
-    wsHandler = WSHandler(wsUrl);
+    _wsHandler = WSHandler(wsUrl);
   }
 
   Future<void> _sendPrevSnapshot() async{
@@ -31,20 +31,32 @@ abstract class Reference<T>{
     );
   }
 
+  // close snapshot listener.
+  void close() {
+    try{
+      _prevSnapshot = null;
+      _wsHandler!.close();
+      controller!.sink.close();
+    }catch(e){
+      print("Error Closing Snapshot listener: " + e.toString());
+    }
+  }
+
 
   Stream<Snapshot> snapshots() {
     // if controller already initialized, ws already open.
     // if its closed manually, it doesnt become null
     if (controller != null && !controller!.isClosed){
-      print("Returning Existing Stream");
+      print("Returning Prev Snapshot");
       _sendPrevSnapshot();
       return controller!.stream;
     }
+    print("Not prev snapshot");
     controller = StreamController<Snapshot>.broadcast();
 
-    wsHandler!.openAuthenticatedChannel().then((success) {
+    _wsHandler!.openAuthenticatedChannel().then((success) {
       if (success){
-        parseMessage(wsHandler!.broadcast!).listen(
+        parseMessage(_wsHandler!.broadcast!).listen(
               (snapshot) {
             // Pass the snapshots from parseMessage to the controller stream
             _prevSnapshot = snapshot;
@@ -52,6 +64,7 @@ abstract class Reference<T>{
           },
           onError: (error) {
             // Handle errors in parseMessage stream
+            print(error);
             controller!.addError(error);
             controller!.close();
           },
@@ -71,7 +84,6 @@ abstract class Reference<T>{
       controller!.addError(error);
       controller!.close();
     });
-
     return controller!.stream;
   }
 
@@ -82,8 +94,7 @@ abstract class Reference<T>{
   // return true/false on success.
   Future<bool> update(Map<String, dynamic> message) async {
     try{
-      print('crwating updateChannle');
-      final channel = await wsHandler!.updateChannel();
+      final channel = await _wsHandler!.updateChannel();
       // channel could be null or a WSChannel object
       if (channel != null){
         channel.sink.add(jsonEncode(message));

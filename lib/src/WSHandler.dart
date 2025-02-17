@@ -1,14 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:buckets/src/models/exceptions.dart';
-import 'package:buckets/src/blocs/snapshot_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../buckets.dart';
-import 'config.dart';
+
 
 final Logger _logger = Logger("WSHandler");
 
@@ -31,16 +28,15 @@ class WSHandler{
         Map<String, dynamic> json = jsonDecode(event);
         if (json['type'] == 'error'){
           completer.complete(false);
-          _logger.severe("_updateChannel authentication failed");
+          _logger.severe("Channel authentication failed");
         }else if(json['type'] == 'authentication'){
           if (json['data']['authentication'] == 'Success'){
-            print("completed");
             completer.complete(true);
-            _logger.severe("_updateChannel authentication success");
+            _logger.severe("Channel authentication success");
           }else{
             print("failed auth");
             completer.complete(false);
-            _logger.severe("_updateChannel authentication failed");
+            _logger.severe("Channel authentication failed");
           }
         }
 
@@ -51,10 +47,10 @@ class WSHandler{
       // returns false or true based on auth result.
       return completer.future;
     }on SocketException catch(e){
-      _logger.severe("_updateChannel SocketException: ", e.toString());
+      _logger.severe("Channel SocketException: ", e.toString());
       completer.complete(false);
     } catch(e){
-      _logger.severe("_updateChannel Unknown Exception: ", e.toString());
+      _logger.severe("Channel Unknown Exception: ", e.toString());
       completer.complete(false);
     }
     return completer.future;
@@ -113,5 +109,14 @@ class WSHandler{
     channel.sink.add(
       jsonEncode(BucketAuth.auth_message())
     );
+  }
+
+  close(){
+    try {
+      _channel!.sink.close();
+    }catch(e){
+      print("Error Closing WSChannel: " + e.toString());
+    }
+
   }
 }
