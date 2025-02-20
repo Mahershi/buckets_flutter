@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:buckets/buckets.dart';
 import 'package:buckets/src/models/Project.dart';
-import 'package:buckets/src/client.dart';
 import 'package:buckets/src/config.dart';
 import 'package:buckets/src/authentication/jwt_token_handler.dart';
 import 'package:buckets/src/models/project_client.dart';
