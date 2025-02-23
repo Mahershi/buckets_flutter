@@ -7,8 +7,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:buckets/src/WSHandler.dart';
+import 'package:logging/logging.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../snapshots/Snapshot.dart';
+
+final Logger _logger = Logger('Reference');
 
 /*
 Handles WS Connection, Authentication, Buffering prev snapshot to send to new consumers
@@ -25,6 +28,7 @@ abstract class Reference<T>{
   }
 
   Future<void> _sendPrevSnapshot() async{
+    _logger.fine("Sending Previous Snapshot!");
     await Future.delayed(Duration(seconds: 1));
     controller!.sink.add(
         _prevSnapshot!
@@ -37,8 +41,9 @@ abstract class Reference<T>{
       _prevSnapshot = null;
       _wsHandler!.close();
       controller!.sink.close();
+      _logger.info("Reference Closed!");
     }catch(e){
-      print("Error Closing Snapshot listener: " + e.toString());
+      _logger.severe("Error closing Reference, Exception: " + e.toString());
     }
   }
 
@@ -47,11 +52,9 @@ abstract class Reference<T>{
     // if controller already initialized, ws already open.
     // if its closed manually, it doesnt become null
     if (controller != null && !controller!.isClosed){
-      print("Returning Prev Snapshot");
       _sendPrevSnapshot();
       return controller!.stream;
     }
-    print("Not prev snapshot");
     controller = StreamController<Snapshot>.broadcast();
 
     _wsHandler!.openAuthenticatedChannel().then((success) {
@@ -64,7 +67,6 @@ abstract class Reference<T>{
           },
           onError: (error) {
             // Handle errors in parseMessage stream
-            print(error);
             controller!.addError(error);
             controller!.close();
           },
@@ -75,6 +77,7 @@ abstract class Reference<T>{
         );
       }
       else{
+        _logger.severe("WS Authentication Failure");
         controller!.addError("Authentication Failure");
         controller!.close();
       }
@@ -90,7 +93,7 @@ abstract class Reference<T>{
   // create the pipeline for respective snapshot -> project, journal or record and return its stream
   Stream<Snapshot> parseMessage(Stream broadcast);
 
-  // opens channel, pushed update msg, close channel.
+  // opens channel, pushes update msg, close channel.
   // return true/false on success.
   Future<bool> update(Map<String, dynamic> message) async {
     try{

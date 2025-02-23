@@ -5,7 +5,7 @@ import 'package:logging/logging.dart';
 
 import '../config.dart';
 
-final Logger _logger = Logger("JWTToken");
+final Logger _logger = Logger("JWTTokenHandler");
 
 class JWTTokenHandler{
   String _accessToken;
@@ -23,7 +23,7 @@ class JWTTokenHandler{
     _refreshInterval = 14;
 
     refreshToken();
-    _logger.info("JWT Init");
+    _logger.info("JWT Initialized");
   }
 
   void stop(){
@@ -34,20 +34,20 @@ class JWTTokenHandler{
   // Async method to refresh token in background
   // TODO: if stop is called, this loop doesnt stop until it finished its wait of _refreshInterval. there is no event handling.
   void refreshToken() async {
+    _logger.info("JWT Refresh Loop triggered");
     while(_shouldRefresh){
-      // print("Waiting for refresh");
       await Future.delayed(Duration(minutes: _refreshInterval), (){});
       refreshed = false;
       try{
         _logger.info("Refreshing access token...");
-        _logger.info("URL: " + Config.host + Config.tokenRefreshURL);
+        _logger.info("JWT Refresh URL: " + Config.host + Config.tokenRefreshURL);
         var response = await http.post(
             Uri.parse(Config.host + Config.tokenRefreshURL),
             body: {
               'refresh': _refreshToken
             }
         );
-        _logger.info("Status Code: " + response.statusCode.toString());
+        _logger.info("JWT Refresh Status Code: " + response.statusCode.toString());
         if (response.statusCode == 200){
           var json = jsonDecode(response.body);
           _accessToken = json['access'];
@@ -58,14 +58,12 @@ class JWTTokenHandler{
           refreshed = false;
         }
       }catch(e){
-        // print("Refresh Exception: ");
-        // print(e);
         _logger.severe("JWT Refresh Exception: " + e.toString());
         refreshed = false;
       }
 
     }
-    _logger.info("Stopped JWT Refresh Loop");
+    _logger.info("JWT Refresh Loop Exited!");
   }
 
   Map<String, String> authHeader(){

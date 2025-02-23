@@ -16,8 +16,10 @@ class JournalReference extends Reference{
     return super.snapshots().map((snapshot){
       if (snapshot is JournalSnapshot)
         return snapshot;
-      else
+      else {
+        _logger.severe("Snapshot Type is not JournalSnapshot");
         throw Exception("Unexpected Snapshot Type");
+      }
     });
   }
 

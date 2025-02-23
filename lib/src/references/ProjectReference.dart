@@ -15,8 +15,10 @@ class ProjectReference extends Reference{
     return super.snapshots().map((snapshot){
       if (snapshot is ProjectSnapshot)
         return snapshot;
-      else
+      else{
+        _logger.severe("Snapshot Type is not ProjectSnapshot");
         throw Exception("Unexpected Snapshot Type");
+      }
     });
   }
 

@@ -34,7 +34,6 @@ class WSHandler{
             completer.complete(true);
             _logger.severe("Channel authentication success");
           }else{
-            print("failed auth");
             completer.complete(false);
             _logger.severe("Channel authentication failed");
           }
@@ -56,11 +55,9 @@ class WSHandler{
     return completer.future;
   }
 
-  // TODO: changes/update
-   Future<dynamic> updateChannel() async {
+  Future<dynamic> updateChannel() async {
     WebSocketChannel uws = _openUnauthenticatedChannel(wsUrl);
     Completer<WebSocketChannel?> completer = Completer<WebSocketChannel?>();
-
     try{
       await uws.ready;
       _logger.info("_updateChannel WS Connection Success");
@@ -106,6 +103,7 @@ class WSHandler{
   So have to pass the object here
    */
   authenticate(WebSocketChannel channel) async {
+    _logger.info("Sending Auth message over channel: " + channel.toString());
     channel.sink.add(
       jsonEncode(BucketAuth.auth_message())
     );
@@ -114,9 +112,9 @@ class WSHandler{
   close(){
     try {
       _channel!.sink.close();
+      _logger.info("Channel Closed!");
     }catch(e){
-      print("Error Closing WSChannel: " + e.toString());
+      _logger.severe("Error Closing WSChannel: " + e.toString());
     }
-
   }
 }

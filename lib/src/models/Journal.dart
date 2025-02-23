@@ -37,14 +37,17 @@ class Journal {
 
   Future<Record> record(String recordId) async {
     try{
+      _logger.info("Fetching record URL: ${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record_id=${recordId}");
       var response = await http.get(
           Uri.parse(
               "${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record_id=${recordId}"
           ),
           headers: BucketAuth.headers()
       );
+      _logger.info("Fetch Record StatusCode ${response.statusCode}");
       if (response.statusCode == 200){
         var jsonData = jsonDecode(response.body)['data'];
+        _logger.fine("Fetched Record JSON: " + jsonData.toString());
         return Record(
           this,
           jsonData['id'].toString(),

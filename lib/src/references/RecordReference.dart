@@ -17,8 +17,10 @@ class RecordReference extends Reference{
     return super.snapshots().map((snapshot){
       if (snapshot is RecordSnapshot)
         return snapshot;
-      else
+      else{
+        _logger.severe("Snapshot Type is not RecordSnapshot");
         throw Exception("Unexpected Snapshot Type");
+      }
     });
   }
 
@@ -229,7 +231,7 @@ class RecordReference extends Reference{
         jsonData = _set_array_element(field, value.toString(), Config.typeMap['NUMBER'].toString());
         send = true;
       }else{
-        print("Invalid Datataype in Add Array Element: Supported Types: STRING, INTEGER, DOUBLE, BOOLEAN");
+        _logger.warning("Invalid Datataype in Add Array Element: Supported Types: STRING, INTEGER, DOUBLE, BOOLEAN");
       }
       if (send){
         _logger.fine("setArrayElement() Message: " + jsonData.toString());

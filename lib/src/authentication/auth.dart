@@ -1,10 +1,8 @@
 import 'dart:convert';
 
 import 'package:buckets/buckets.dart';
-import 'package:buckets/src/models/Project.dart';
 import 'package:buckets/src/config.dart';
 import 'package:buckets/src/authentication/jwt_token_handler.dart';
-import 'package:buckets/src/models/project_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
@@ -47,15 +45,15 @@ class BucketAuth{
 
         return await _getClient();
       }
-      _logger.warning("Auth failed");
+      _logger.warning("Client Auth failed");
       return false;
     }catch(e){
-      _logger.severe("clientLogin excep: " + e.toString());
+      _logger.severe("clientLogin() Exception: " + e.toString());
       return false;
     }
   }
 
-  // TODO: Block usage, no more user login
+  // only used on the dashboard.
   static Future<bool> userLoginWithCredentials(String email, String password) async {
     _loggedIn = false;
     try{
@@ -80,10 +78,10 @@ class BucketAuth{
 
         return true;
       }
-      _logger.warning("Auth failed");
+      _logger.warning("User Auth failed");
       return false;
     }catch(e){
-      _logger.severe("userLoginWithCreds Excep: " + e.toString());
+      _logger.severe("userLoginWithCredentials() Exception: " + e.toString());
       return false;
     }
   }
@@ -95,6 +93,7 @@ class BucketAuth{
           Uri.parse(Config.host + Config.getClient),
           headers: headers()
       );
+      _logger.info('Response Code ' + response.statusCode.toString());
       if (response.statusCode == 200){
         var json = jsonDecode(response.body);
         if (json['success']){
@@ -108,7 +107,8 @@ class BucketAuth{
             Project(
                 json['data']['project']['id'].toString(),
                 json['data']['project']['name'],
-                json['data']['project']['created_at']
+                json['data']['project']['created_at'],
+                json['data']['project']['is_active']
             ),
             Access(
                 json['data']['access']['id'].toString(),
@@ -119,11 +119,9 @@ class BucketAuth{
         }
         return true;
       }
-      print(response.statusCode);
-      print(response.body);
       _logger.warning("_curUser init Failed");
     }catch(e){
-      _logger.severe("getClient excep: " + e.toString());
+      _logger.severe("getClient Exception: " + e.toString());
     }
     return false;
   }
@@ -135,6 +133,7 @@ class BucketAuth{
           Uri.parse(Config.host + Config.userURL),
           headers: user_auth_header()
       );
+      _logger.info('Response Code ' + response.statusCode.toString());
       if (response.statusCode == 200){
         var json = jsonDecode(response.body);
         if (json['success']){
@@ -143,11 +142,9 @@ class BucketAuth{
         }
         return ;
       }
-      print(response.statusCode);
-      print(response.body);
       _logger.warning("_curUser init Failed");
     }catch(e){
-      _logger.severe("SetCurUser Excep: " + e.toString());
+      _logger.severe("SetCurUser Exception: " + e.toString());
     }
   }
 
@@ -176,16 +173,17 @@ class BucketAuth{
   }
 
   static void closeClient(){
-    _logger.info("Client Closing!");
+    _logger.info("Closing client...");
     _loggedIn = false;
     _clientJwtTokenHandler.stop();
     _curClient = ProjectClient.empty();
+    _logger.info("ProjectClient closed!");
   }
 
   static void logout(){
     // Notify JWT to no longer refresh token due to logout.
-    _logger.info("User Logging out!");
     _userJwtTokenHandler.stop();
     _curUser = User.empty();
+    _logger.info("User logged out!");
   }
 }
