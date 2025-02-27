@@ -28,7 +28,7 @@ abstract class Reference<T>{
   }
 
   Future<void> _sendPrevSnapshot() async{
-    _logger.fine("Sending Previous Snapshot!");
+    _logger.fine("Sending Previous Snapshot... delayed 1 second");
     await Future.delayed(Duration(seconds: 1));
     controller!.sink.add(
         _prevSnapshot!
