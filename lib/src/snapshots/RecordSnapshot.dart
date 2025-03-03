@@ -26,8 +26,9 @@ class RecordSnapshot extends Snapshot{
       data = data[parts[i]]['value'];
     }
     field = parts.last;
-    _logger.fine("get() data after dot iteration: " + data.toString());
-    _logger.fine("get() field after dot iteration: " + field.toString());
+    // too much logging is lagging dashboard if very huge number of fields.
+    // _logger.fine("get() data after dot iteration: " + data.toString());
+    // _logger.fine("get() field after dot iteration: " + field.toString());
     if (data.containsKey(field)){
       return data[field]['value'];
     }
@@ -42,8 +43,9 @@ class RecordSnapshot extends Snapshot{
       data = data[parts[i]]['value'];
     }
     field = parts.last;
-    _logger.fine("getMap() data after dot iteration: " + data.toString());
-    _logger.fine("getMap() field after dot iteration: " + field.toString());
+    // too much logging is lagging dashboard if very huge number of fields.
+    // _logger.fine("getMap() data after dot iteration: " + data.toString());
+    // _logger.fine("getMap() field after dot iteration: " + field.toString());
     if(data.containsKey(field)){
       return RecordSnapshot(this.id, this.name, data[field]['value']);
       // BucketSnapshot bs = BucketSnapshot.fromJson(_id, _name, data[field]['value'], _snapshotType);
@@ -61,8 +63,9 @@ class RecordSnapshot extends Snapshot{
       data = data[parts[i]]['value'];
     }
     field = parts.last;
-    _logger.fine("typeOf() data after dot iteration: " + data.toString());
-    _logger.fine("typeOf() field after dot iteration: " + field.toString());
+    // too much logging is lagging dashboard if very huge number of fields.
+    // _logger.fine("typeOf() data after dot iteration: " + data.toString());
+    // _logger.fine("typeOf() field after dot iteration: " + field.toString());
     if (data.containsKey(field)){
       return type_map[data[field]['type']];
     }

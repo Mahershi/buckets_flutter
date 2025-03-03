@@ -27,10 +27,10 @@ export 'src/models/project_client.dart' show ProjectClient;
 export 'src/client.dart' show Client;
 export 'src/references/ProjectReference.dart' show ProjectReference;
 export 'src/references/RecordReference.dart' show RecordReference;
-export 'src/references/JournalReference.dart' show JournalReference;
+export 'src/references/MinJournalReference.dart' show MinJournalReference;
 export 'src/snapshots/RecordSnapshot.dart' show RecordSnapshot;
 export 'src/snapshots/ProjectSnapshot.dart' show ProjectSnapshot;
-export 'src/snapshots/JournalSnapshot.dart' show JournalSnapshot;
+export 'src/snapshots/MinJournalSnapshot.dart' show MinJournalSnapshot;
 
 final Logger _logger = Logger('Buckets');
 

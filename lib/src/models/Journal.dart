@@ -1,12 +1,10 @@
 import 'dart:convert';
 
-import 'package:buckets/src/models/Project.dart';
-import 'package:buckets/src/references/JournalReference.dart';
+import 'package:buckets/src/references/MinJournalReference.dart';
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 
 import '../../buckets.dart';
-import 'Record.dart';
 import '../config.dart';
 import 'exceptions.dart';
 
@@ -66,8 +64,8 @@ class Journal {
     return this._id == '';
   }
 
-  JournalReference getReference(){
+  MinJournalReference getReference(){
     String wsUrl = '${Config.wsHost}${Config.journalWebSocketURL}${this._id}';
-    return JournalReference(wsUrl);
+    return MinJournalReference(wsUrl);
   }
 }

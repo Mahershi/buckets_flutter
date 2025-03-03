@@ -2,19 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:buckets/src/references/Reference.dart';
-import 'package:buckets/src/snapshots/JournalSnapshot.dart';
+import 'package:buckets/src/snapshots/MinJournalSnapshot.dart';
 import 'package:logging/logging.dart';
 
 final Logger _logger = Logger("JournalReference");
 
 
-class JournalReference extends Reference{
-  JournalReference(super.wsUrl);
+class MinJournalReference extends Reference{
+  MinJournalReference(super.wsUrl);
 
   @override
-  Stream<JournalSnapshot> snapshots(){
+  Stream<MinJournalSnapshot> snapshots(){
     return super.snapshots().map((snapshot){
-      if (snapshot is JournalSnapshot)
+      if (snapshot is MinJournalSnapshot)
         return snapshot;
       else {
         _logger.severe("Snapshot Type is not JournalSnapshot");
@@ -24,14 +24,14 @@ class JournalReference extends Reference{
   }
 
   @override
-  Stream<JournalSnapshot> parseMessage(Stream broadcast) {
+  Stream<MinJournalSnapshot> parseMessage(Stream broadcast) {
     // controller for stream ID:1
-    StreamController<JournalSnapshot> controller = StreamController<JournalSnapshot>();
+    StreamController<MinJournalSnapshot> controller = StreamController<MinJournalSnapshot>();
     broadcast.listen((event) {
       // convert string event to ProjectSnapshot object
       Map<String, dynamic> jsonEvent = jsonDecode(event);
 
-      controller.sink.add(JournalSnapshot(
+      controller.sink.add(MinJournalSnapshot(
           jsonEvent['data']['id'].toString(),
           jsonEvent['data']['name'],
           jsonEvent['data']['value']

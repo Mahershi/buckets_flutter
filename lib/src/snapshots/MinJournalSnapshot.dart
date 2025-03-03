@@ -1,6 +1,6 @@
 import 'Snapshot.dart';
 
-class JournalSnapshot extends Snapshot{
+class MinJournalSnapshot extends Snapshot{
   // here data is map
   /*
   {
@@ -18,5 +18,5 @@ class JournalSnapshot extends Snapshot{
   }
    */
 
-  JournalSnapshot(id, name, data) : super(id, name, data);
+  MinJournalSnapshot(id, name, data) : super(id, name, data);
 }
