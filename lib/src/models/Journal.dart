@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import 'package:buckets/src/references/MinJournalReference.dart';
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 
 import '../../buckets.dart';
 import '../config.dart';
+import '../references/JournalReference.dart';
 import 'exceptions.dart';
 
 final Logger _logger = Logger('Journal');
@@ -32,7 +32,8 @@ class Journal {
     _created_at = '',
     _created_by_user = '';
 
-
+  // TODO: get record by name and not id. Record names in journal will be unique
+  // TODO: add a create:bool field, pass to API, if not exists, create record.
   Future<Record> record(String recordId) async {
     try{
       _logger.info("Fetching record URL: ${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record_id=${recordId}");
@@ -64,8 +65,20 @@ class Journal {
     return this._id == '';
   }
 
-  MinJournalReference getReference(){
-    String wsUrl = '${Config.wsHost}${Config.journalWebSocketURL}${this._id}';
-    return MinJournalReference(wsUrl);
+  // default returns reference to Extended Journal
+  // if type give, returns MinJournal (for dashboard)
+  T getReference<T>(){
+    if (T == MinJournalReference) {
+      String wsUrl = '${Config.wsHost}${Config.journalWebSocketURL}${this._id}';
+      return MinJournalReference(wsUrl) as T;
+    }else {
+      String wsUrl = '${Config.wsHost}${Config.exjournalWebSocketURL}${this._id}';
+      return JournalReference(wsUrl) as T;
+    }
   }
+  //
+  // JournalReference getReference(){
+  //   String wsUrl = '${Config.wsHost}${Config.exjournalWebSocketURL}${this._id}';
+  //   return JournalReference(wsUrl);
+  // }
 }
