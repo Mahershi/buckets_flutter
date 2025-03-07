@@ -32,7 +32,7 @@ class WSHandler{
         }else if(json['type'] == 'authentication'){
           if (json['data']['authentication'] == 'Success'){
             completer.complete(true);
-            _logger.severe("Channel authentication success");
+            _logger.info("Channel authentication success");
           }else{
             completer.complete(false);
             _logger.severe("Channel authentication failed");
@@ -40,7 +40,6 @@ class WSHandler{
         }
 
       });
-
       await authenticate(_channel!);
 
       // returns false or true based on auth result.

@@ -34,12 +34,12 @@ class Journal {
 
   // TODO: get record by name and not id. Record names in journal will be unique
   // TODO: add a create:bool field, pass to API, if not exists, create record.
-  Future<Record> record(String recordId) async {
+  Future<Record> record(String record) async {
     try{
-      _logger.info("Fetching record URL: ${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record_id=${recordId}");
+      _logger.info("Fetching record URL: ${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record=${record}");
       var response = await http.get(
           Uri.parse(
-              "${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record_id=${recordId}"
+              "${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record=${record}"
           ),
           headers: BucketAuth.headers()
       );

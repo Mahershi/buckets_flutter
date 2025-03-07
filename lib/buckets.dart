@@ -31,6 +31,7 @@ export 'src/references/MinJournalReference.dart' show MinJournalReference;
 export 'src/snapshots/RecordSnapshot.dart' show RecordSnapshot;
 export 'src/snapshots/ProjectSnapshot.dart' show ProjectSnapshot;
 export 'src/snapshots/MinJournalSnapshot.dart' show MinJournalSnapshot;
+export 'src/snapshots/JournalSnapshot.dart' show JournalSnapshot;
 
 final Logger _logger = Logger('Buckets');
 

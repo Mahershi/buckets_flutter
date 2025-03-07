@@ -23,6 +23,8 @@ abstract class Reference<T>{
   StreamController<Snapshot>? controller;
   Snapshot? _prevSnapshot;
 
+  Snapshot get prevSnapshot => _prevSnapshot!;
+
   Reference(String wsUrl){
     _wsHandler = WSHandler(wsUrl);
   }
