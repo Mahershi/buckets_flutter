@@ -65,5 +65,4 @@ class ProjectReference extends Reference{
       _logger.severe("removeJournal() Exception: " + e.toString());
     }
   }
-
 }

@@ -23,6 +23,8 @@ class Config{
   static const String _journalWebSocketURL = 'journal/stream/';
   static const String _exjournalWebSocketURL = 'exjournal/stream/';
   static const String _recordWebSocketURL = 'record/stream/';
+  static const String _storage = 'app/storage/';
+  static const String _media = 'media/projects/';
 
   static const String _userURL = 'app/user/me';
 
@@ -43,6 +45,8 @@ class Config{
   static String get journalWebSocketURL => _journalWebSocketURL;
   static String get exjournalWebSocketURL => _exjournalWebSocketURL;
   static String get recordWebSocketURL => _recordWebSocketURL;
+  static String get storage => _storage;
+  static String get media => _media;
 
   static const Map<String, int> typeMap = {
     "STRING": 1,
