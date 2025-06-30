@@ -3,10 +3,7 @@ import 'dart:convert';
 
 import 'package:buckets/buckets.dart';
 import 'package:buckets/src/references/Reference.dart';
-import 'package:buckets/src/snapshots/JournalSnapshot.dart';
 import 'package:logging/logging.dart';
-
-import '../snapshots/Snapshot.dart';
 
 final Logger _logger = Logger("JournalReference");
 

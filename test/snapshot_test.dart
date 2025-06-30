@@ -1,6 +1,4 @@
 import 'package:buckets/src/models/bucket.dart';
-import 'package:buckets/src/bucket_snapshot.dart';
-import 'package:buckets/src/client.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:buckets/src/authentication/auth.dart' as auth;
@@ -11,14 +9,15 @@ void main() {
   Buckets.setLogLevel(level: Level.ALL);
   Buckets.switchToDevelopment();
   test('Should Work', () async {
-    await auth.BucketAuth.clientLogin("448dd712addad98eece8e2cc2724a2e0", "r2dbBBRMrId_zwjHtFddI0aXtaofL94L93CUA5ETKh0");
-    Client c = Buckets.client();
-
-    c.snapshots().listen((event) {
+    await BucketAuth.clientLogin("b07c4d0709dc7b3cfaa3bc6a4b80cc5a", "W8nmcKwxEdc_KZqYVxhLXqU5rcb30gznN21UBUD66uE");
+    var ub = await Buckets.project();
+    ProjectReference ref = ub.getReference();
+    ref.snapshots().listen((event) {
       print(event.data.toString());
     });
+
     await Future.delayed(Duration(seconds: 5));
-    c.disconnect();
+    ref.close();
 
     expect(true, true);
   });

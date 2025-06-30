@@ -32,15 +32,19 @@ class Journal {
     _created_at = '',
     _created_by_user = '';
 
-  // TODO: get record by name and not id. Record names in journal will be unique
-  // TODO: add a create:bool field, pass to API, if not exists, create record.
+  // Will create the record if doesnt exist
+  // TODO: test pending.
   Future<Record> record(String record) async {
     try{
       _logger.info("Fetching record URL: ${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record=${record}");
-      var response = await http.get(
+      _logger.info("Client Auth Header: ${BucketAuth.headers()}");
+      var response = await http.post(
           Uri.parse(
-              "${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record=${record}"
+              "${Config.host}${Config.getJournal}${_id}/${Config.getRecord}/?project_id=${_project.id}",
           ),
+          body: {
+            "record": record
+          },
           headers: BucketAuth.headers()
       );
       _logger.info("Fetch Record StatusCode ${response.statusCode}");
@@ -53,6 +57,8 @@ class Journal {
           jsonData['name'].toString(),
           jsonData['created_at'].toString()
         );
+      }else{
+        _logger.severe("${response.body}");
       }
     }catch(e){
       _logger.warning("Error Fetching Record");

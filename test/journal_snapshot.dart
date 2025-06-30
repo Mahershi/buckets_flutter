@@ -1,6 +1,4 @@
 import 'package:buckets/src/models/bucket.dart';
-import 'package:buckets/src/bucket_snapshot.dart';
-import 'package:buckets/src/client.dart';
 import 'package:buckets/src/references/JournalReference.dart';
 import 'package:buckets/src/snapshots/JournalSnapshot.dart';
 import 'package:flutter_test/flutter_test.dart';

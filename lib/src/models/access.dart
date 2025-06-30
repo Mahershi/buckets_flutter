@@ -32,8 +32,8 @@ class Access{
   }
 
   static final Access OWNER = Access('1', 'Owner');
-  static final Access EDITOR = Access('1', 'Editor');
-  static final Access VIEWER = Access('1', 'Viewer');
+  static final Access EDITOR = Access('2', 'Editor');
+  static final Access VIEWER = Access('3', 'Viewer');
 
   @override
   bool operator ==(Object other){
@@ -45,4 +45,7 @@ class Access{
     }
     return other is Access && this._id == other._id && this._type == other._type;
   }
+
+  @override
+  int get hashCode => _id.hashCode ^ _type.hashCode;
 }

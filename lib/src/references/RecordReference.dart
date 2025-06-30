@@ -42,7 +42,7 @@ class RecordReference extends Reference{
   }
 
   @override
-  Map<String, dynamic> _set(String field, String value) {
+  Map<String, dynamic> _set(String field, {dynamic value=''}) {
     return <String, dynamic>{
       "type": "add_field",
       "data": {
@@ -90,7 +90,7 @@ class RecordReference extends Reference{
   Future<void> setString({String? field, String? value}) async {
     _logger.fine("setString() field: " + field! + ", value: " + value!);
     try{
-      Map<String, dynamic> jsonData = _set(field, value);
+      Map<String, dynamic> jsonData = _set(field, value: value);
       jsonData['data']['type'] = Config.typeMap['STRING'].toString();
       _logger.fine("setString() Message: " + jsonData.toString());
       await update(jsonData);
@@ -102,7 +102,7 @@ class RecordReference extends Reference{
   Future<void> setInt({String? field, int? value}) async {
     _logger.fine("setInt() field: " + field! + ", value: " + value!.toString());
     try{
-      Map<String, dynamic> jsonData = _set(field, value.toString());
+      Map<String, dynamic> jsonData = _set(field, value: value.toString());
       jsonData['data']['type'] = Config.typeMap['NUMBER'].toString();
       _logger.fine("setInt() Message: " + jsonData.toString());
       await update(jsonData);
@@ -114,7 +114,7 @@ class RecordReference extends Reference{
   Future<void> setDouble({String? field, double? value}) async {
     _logger.fine("setDouble() field: " + field! + ", value: " + value!.toString());
     try{
-      Map<String, dynamic> jsonData = _set(field, value.toString());
+      Map<String, dynamic> jsonData = _set(field, value: value.toString());
       jsonData['data']['type'] = Config.typeMap['NUMBER'].toString();
       _logger.fine("setDouble() Message: " + jsonData.toString());
       await update(jsonData);
@@ -126,7 +126,7 @@ class RecordReference extends Reference{
   Future<void> setBool({String? field, bool? value}) async {
     _logger.fine("setBool() field: " + field! + ", value: " + value!.toString());
     try{
-      Map<String, dynamic> jsonData = _set(field, value.toString());
+      Map<String, dynamic> jsonData = _set(field, value: value.toString());
       jsonData['data']['type'] = Config.typeMap['BOOLEAN'].toString();
       _logger.fine("setBool() Message: " + jsonData.toString());
       await update(jsonData);
@@ -151,63 +151,98 @@ class RecordReference extends Reference{
     }
   }
 
+  // TODO: Implement adding of Array inside of Map on the backend.
+  Map<String, dynamic> _populate_map_fields({Map<dynamic, dynamic> data = const {}}){
+    Map<String, dynamic> fields = {};
+    data.forEach((key, value) async {
+      fields[key] = {};
+      if (value.runtimeType == String){
+        fields[key]['value'] = value;
+        fields[key]['type'] = Config.typeMap['STRING'].toString();
+      }else if(value.runtimeType == bool){
+        fields[key]['value'] = value;
+        fields[key]['type'] = Config.typeMap['BOOLEAN'].toString();
+      }else if(value.runtimeType == int || value.runtimeType == double){
+        fields[key]['value'] = value;
+        fields[key]['type'] = Config.typeMap['NUMBER'].toString();
+      }else if(value is Map){
+        fields[key]['value'] = _populate_map_fields(data: value);
+        fields[key]['type'] = Config.typeMap['MAP'].toString();
+      }else if(value is List){
+        fields[key]['value'] = _populate_array_fields(items: value);
+        fields[key]['type'] = Config.typeMap['ARRAY'].toString();
+      }else{
+        // Unsupported Data Type Array inside Map.
+        // TODO: Handle Exception.
+        _logger.warning("setMap() Unsupported Data Type");
+      }
+    });
+
+    return fields;
+  }
+
   // Recursively sets a Map field considering presence of sub maps. Adv Testing pending, basics tested.
-  // TODO: field here needs to be prepared by user i.e. in case of hierarchy.
-  // EG: user needs to send SubB1.B2....BN
   Future<void> setMap({String? field, Map<dynamic, dynamic> data = const {}}) async {
     _logger.fine("setMap() field: " + field!, ", data:" + data.toString());
     try{
       // Create the empty map field
-      Map<String, dynamic> jsonData = _set(field, '');
+      Map<String, dynamic> jsonData = _set(field, value: {});
       jsonData['data']['type'] = Config.typeMap['MAP'].toString();
       _logger.fine("setMap() Message: " + jsonData.toString());
-      // this opens new channel and closes.
-      await update(jsonData);
 
       // Set Map key value pairs.
-      // TODO: Implement adding of Array inside of Map on the backend.
-      data.forEach((key, value) async {
-        if (value.runtimeType == String){
-          await setString(field: field+"."+key, value: value);
-        }else if(value.runtimeType == bool){
-          await setBool(field: field+"."+key, value: value);
-        }else if(value.runtimeType == int){
-          await setInt(field: field+"."+key, value: value);
-        }else if(value.runtimeType == double){
-          await setDouble(field: field+"."+key, value: value);
-        }else if(value is Map){
-          // Aug 25: Seems to be working fine except optimization issue.
-          // Recursive call for nested Maps
-          // Need to attach bucket name for key hierarchy
-          // SubBucket.SubBucket => hierarchy
-          // TODO: this recusive call will create new WS conections. Improve to use the existing one.
-          await setMap(field: field+'.'+key, data:value);
-        }else{
-          // Unsupported Data Type.
-          // TODO: Handle Exception.
-          _logger.warning("setMap() Unsupported Data Type");
-        }
-      });
+      print(jsonData);
+      Map<String, dynamic> fields = _populate_map_fields(data: data);
+      print(fields);
+      jsonData['data']['value'] = fields;
+      print("WS message:");
+      print(jsonData);
+      await update(jsonData);
 
-    }catch(e){
+    }catch(e, stackTrace){
       _logger.severe("setMap() Exception: " + e.toString());
+      print('Stack trace: $stackTrace');
     }
   }
 
+  List<Map<String, dynamic>> _populate_array_fields(
+      {List<dynamic> items = const []}){
+    List<Map<String, dynamic>> fields = [];
+
+    for (var item in items){
+      Map<String, dynamic> field = {};
+      if (item.runtimeType == String){
+        field['value'] = item;
+        field['type'] = Config.typeMap['STRING'].toString();
+      }else if(item.runtimeType == bool){
+        field['value'] = item;
+        field['type'] = Config.typeMap['BOOLEAN'].toString();
+      }else if(item.runtimeType == int || item.runtimeType == double){
+        field['value'] = item;
+        field['type'] = Config.typeMap['NUMBER'].toString();
+      }else if(item is Map){
+        field['value'] = _populate_map_fields(data: item);
+        field['type'] = Config.typeMap['MAP'].toString();
+      }
+      fields.add(field);
+    }
+    return fields;
+  }
+
   // Creates Array if not existing and adds the element if any passed.
+  // NOTE: support added for an Array of Maps - but not supported by backend yet
   Future<void> setArray({String? field, List<dynamic> items = const []}) async {
     _logger.fine("setArray() field: " + field! + ", items: " + items.toString());
     try{
-      // Created the array first, if it exists, existing data is NOT lost.
-      Map<String, dynamic> jsonData = _set(field, '');
+      Map<String, dynamic> jsonData = _set(field, value: []);
       jsonData['data']['type'] = Config.typeMap['ARRAY'].toString();
       _logger.fine("setArray() Message: " + jsonData.toString());
+
+      List<Map<String, dynamic>> fields = _populate_array_fields(items: items);
+      jsonData['data']['value'] = fields;
+
       await update(jsonData);
-      // Future.forEach so that each iteration waits for the prev one to finish. to respect the indexing.
-      // TODO: need to optimized to use existing WS Channel.
-      Future.forEach(items, (element) async {
-        await setArrayElement(field: field, value: element);
-      });
+
     }catch(e){
       _logger.severe("setArray() Exception: " + e.toString());
     }

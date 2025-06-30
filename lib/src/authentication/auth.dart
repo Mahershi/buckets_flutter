@@ -14,18 +14,20 @@ class BucketAuth{
   static late ProjectClient _curClient;
   static late JWTTokenHandler _clientJwtTokenHandler;
   static late JWTTokenHandler _userJwtTokenHandler;
-  static bool _loggedIn = false;
+  static bool _clientLoggedIn = false;
+  static bool _userLoggedIn = false;
 
   // TODO: Fetching the current user is not yet integrated as we have every thing based on JWT.
   static ProjectClient get curClient => _curClient;
-  static bool get loggedIn => _loggedIn;
+  static bool get loggedIn => _clientLoggedIn;
+  static bool get userLoggedIn => _userLoggedIn;
   static User get curUser => _curUser;
 
   // Private constructor to prevent object creation.
   BucketAuth._();
 
   static Future<bool> clientLogin(String clientId, String clientKey) async {
-    _loggedIn = false;
+    _clientLoggedIn = false;
     try{
       _logger.info("Auth URL: " + Config.host + Config.clientTokenURL);
       var response = await http.post(
@@ -40,7 +42,7 @@ class BucketAuth{
 
         var json = jsonDecode(response.body);
         _clientJwtTokenHandler = JWTTokenHandler(json['access'], json['refresh']);
-        _loggedIn = true;
+        _clientLoggedIn = true;
         _logger.info("Client Logged In");
 
         return await _getClient();
@@ -55,7 +57,7 @@ class BucketAuth{
 
   // only used on the dashboard.
   static Future<bool> userLoginWithCredentials(String email, String password) async {
-    _loggedIn = false;
+    _userLoggedIn = false;
     try{
       _logger.info("Auth URL: " + Config.host + Config.tokenURL);
       var response = await http.post(
@@ -68,12 +70,10 @@ class BucketAuth{
       _logger.info("Auth Status Code: " + response.statusCode.toString());
       if (response.statusCode == 200){
 
-
         var json = jsonDecode(response.body);
         _userJwtTokenHandler = JWTTokenHandler(json['access'], json['refresh']);
-        _loggedIn = true;
+        _userLoggedIn = true;
         _logger.info("User Logged In");
-
         await _setCurUser();
 
         return true;
@@ -150,7 +150,7 @@ class BucketAuth{
 
   //client auth headers
   static Map<String, String> headers(){
-    if(_loggedIn){
+    if(_clientLoggedIn){
       return _clientJwtTokenHandler.authHeader();
     }
     return <String, String>{};
@@ -158,7 +158,7 @@ class BucketAuth{
 
   // user auth headers
   static Map<String, String> user_auth_header(){
-    if(_loggedIn){
+    if(_userLoggedIn){
       return _userJwtTokenHandler.authHeader();
     }
     return <String, String>{};
@@ -166,7 +166,7 @@ class BucketAuth{
 
   // client auth message
   static Map<String, dynamic> auth_message(){
-    if(_loggedIn){
+    if(_clientLoggedIn){
       return _clientJwtTokenHandler.authWSMessage();
     }
     return <String, dynamic>{};
@@ -174,7 +174,7 @@ class BucketAuth{
 
   static void closeClient(){
     _logger.info("Closing client...");
-    _loggedIn = false;
+    _clientLoggedIn = false;
     _clientJwtTokenHandler.stop();
     _curClient = ProjectClient.empty();
     _logger.info("ProjectClient closed!");

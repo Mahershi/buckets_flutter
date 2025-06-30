@@ -24,7 +24,6 @@ class WSHandler{
       _logger.info("opening unauthenticated WS Connection Success");
       // stream ID:0
       broadcast!.listen((event) {
-
         Map<String, dynamic> json = jsonDecode(event);
         if (json['type'] == 'error'){
           completer.complete(false);

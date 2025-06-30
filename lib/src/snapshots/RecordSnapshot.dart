@@ -1,7 +1,5 @@
 import 'package:logging/logging.dart';
 import '../models/field_type.dart';
-import '../../buckets.dart';
-// import '../models/access.dart';
 import 'Snapshot.dart';
 
 final Logger _logger = Logger('RecordSnapshot');
