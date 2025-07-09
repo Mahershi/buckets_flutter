@@ -37,6 +37,10 @@ class Buckets{
     setupLogging(level);
   }
 
+  static Level getLogLevel(){
+    return Logger.root.level;
+  }
+
   static void switchToDevelopment(){
     Config.setEnvironment(Environment.DEVELOPMENT);
   }
