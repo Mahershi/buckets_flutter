@@ -49,8 +49,8 @@ class BucketAuth{
       }
       _logger.warning("Client Auth failed");
       return false;
-    }catch(e){
-      _logger.severe("clientLogin() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("clientLogin() Exception: ", e, stackTrace);
       return false;
     }
   }
@@ -80,8 +80,8 @@ class BucketAuth{
       }
       _logger.warning("User Auth failed");
       return false;
-    }catch(e){
-      _logger.severe("userLoginWithCredentials() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("userLoginWithCredentials() Exception: ", e, stackTrace);
       return false;
     }
   }
@@ -120,8 +120,8 @@ class BucketAuth{
         return true;
       }
       _logger.warning("_curUser init Failed");
-    }catch(e){
-      _logger.severe("getClient Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("getClient Exception: ", e, stackTrace);
     }
     return false;
   }
@@ -143,8 +143,8 @@ class BucketAuth{
         return ;
       }
       _logger.warning("_curUser init Failed");
-    }catch(e){
-      _logger.severe("SetCurUser Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("SetCurUser Exception: ", e, stackTrace);
     }
   }
 

@@ -94,8 +94,8 @@ class RecordReference extends Reference{
       jsonData['data']['type'] = Config.typeMap['STRING'].toString();
       _logger.fine("setString() Message: " + jsonData.toString());
       await update(jsonData);
-    }catch(e){
-      _logger.severe("setString() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("setString() Exception: ", e, stackTrace);
     }
   }
 
@@ -106,8 +106,8 @@ class RecordReference extends Reference{
       jsonData['data']['type'] = Config.typeMap['NUMBER'].toString();
       _logger.fine("setInt() Message: " + jsonData.toString());
       await update(jsonData);
-    }catch(e){
-      _logger.severe("setInt() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("setInt() Exception: ", e, stackTrace);
     }
   }
 
@@ -118,8 +118,8 @@ class RecordReference extends Reference{
       jsonData['data']['type'] = Config.typeMap['NUMBER'].toString();
       _logger.fine("setDouble() Message: " + jsonData.toString());
       await update(jsonData);
-    }catch(e){
-      _logger.severe("setDouble() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("setDouble() Exception: ", e, stackTrace);
     }
   }
 
@@ -130,8 +130,8 @@ class RecordReference extends Reference{
       jsonData['data']['type'] = Config.typeMap['BOOLEAN'].toString();
       _logger.fine("setBool() Message: " + jsonData.toString());
       await update(jsonData);
-    }catch(e){
-      _logger.severe("setBool() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("setBool() Exception: ", e, stackTrace);
     }
   }
 
@@ -146,8 +146,8 @@ class RecordReference extends Reference{
       };
       _logger.fine("removeField() Message: " + jsonData.toString());
       await update(jsonData);
-    }catch(e){
-      _logger.severe("removeField() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("removeField() Exception: ", e, stackTrace);
     }
   }
 
@@ -191,17 +191,12 @@ class RecordReference extends Reference{
       _logger.fine("setMap() Message: " + jsonData.toString());
 
       // Set Map key value pairs.
-      print(jsonData);
       Map<String, dynamic> fields = _populate_map_fields(data: data);
-      print(fields);
       jsonData['data']['value'] = fields;
-      print("WS message:");
-      print(jsonData);
       await update(jsonData);
 
     }catch(e, stackTrace){
-      _logger.severe("setMap() Exception: " + e.toString());
-      print('Stack trace: $stackTrace');
+      _logger.severe("setMap() Exception: ", e, stackTrace);
     }
   }
 
@@ -243,8 +238,8 @@ class RecordReference extends Reference{
 
       await update(jsonData);
 
-    }catch(e){
-      _logger.severe("setArray() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("setArray() Exception: ", e, stackTrace);
     }
   }
 
@@ -272,8 +267,8 @@ class RecordReference extends Reference{
         _logger.fine("setArrayElement() Message: " + jsonData.toString());
         await update(jsonData!);
       }
-    }catch(e){
-      _logger.severe("setArrayElement() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("setArrayElement() Exception: ", e, stackTrace);
     }
   }
 
@@ -285,8 +280,8 @@ class RecordReference extends Reference{
       _logger.fine("updateArrayElement() Message: " + jsonData.toString());
 
       await update(jsonData);
-    }catch(e){
-      _logger.severe("updateArrayElement() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("updateArrayElement() Exception: ", e, stackTrace);
     }
   }
 
@@ -296,8 +291,8 @@ class RecordReference extends Reference{
       Map<String, dynamic> jsonData = _remove_array_element(field, value);
       _logger.fine("removeArrayElement() Message: " + jsonData.toString());
       await update(jsonData);
-    }catch(e){
-      _logger.severe("updateArrayElement() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("updateArrayElement() Exception: ", e, stackTrace);
     }
   }
 

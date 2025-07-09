@@ -127,8 +127,8 @@ class JournalReference extends Reference{
       };
       _logger.fine("createRecord() Message: " + jsonData.toString());
       await update(jsonData);
-    }catch(e){
-      _logger.severe("createRecord() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("createRecord() Exception: ", e, stackTrace);
     }
   }
 
@@ -141,8 +141,8 @@ class JournalReference extends Reference{
       };
       _logger.fine("removeRecord() Message: " + jsonData.toString());
       await update(jsonData);
-    }catch(e){
-      _logger.severe("removeRecord() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("removeRecord() Exception: ", e, stackTrace);
     }
   }
 

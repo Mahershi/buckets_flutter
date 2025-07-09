@@ -54,8 +54,8 @@ class Buckets{
     if (BucketAuth.loggedIn){
       try{
         return BucketAuth.curClient.project;
-      }catch(e){
-        _logger.warning("Unknown Exception when fetching Project!");
+      }catch(e, stackTrace){
+        _logger.warning("Unknown Exception when fetching Project!", e, stackTrace);
         throw UnauthAccess("User not logged in! Use BucketAuth to login user!");
       }
     }else{

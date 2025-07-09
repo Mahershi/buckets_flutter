@@ -32,6 +32,10 @@ abstract class Reference<T>{
   Future<void> _sendPrevSnapshot() async{
     _logger.fine("Sending Previous Snapshot... delayed 1 second");
     await Future.delayed(Duration(seconds: 1));
+
+    // TODO: wrap below in try catch. if user switches veryfast
+    // this might get before being sent.
+    // no issues other than that.
     controller!.sink.add(
         _prevSnapshot!
     );
@@ -44,8 +48,8 @@ abstract class Reference<T>{
       _wsHandler!.close();
       controller!.sink.close();
       _logger.info("Reference Closed!");
-    }catch(e){
-      _logger.severe("Error closing Reference, Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("Error closing Reference, Exception: ", e, stackTrace);
     }
   }
 
@@ -106,7 +110,7 @@ abstract class Reference<T>{
         await channel.sink.close();
         return true;
       }
-    }catch(e){
+    }catch(e, stackTrace){
       // TODO: exception handling. Also look into completer.onError
     }
     return false;

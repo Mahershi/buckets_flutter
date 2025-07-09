@@ -43,11 +43,11 @@ class WSHandler{
 
       // returns false or true based on auth result.
       return completer.future;
-    }on SocketException catch(e){
-      _logger.severe("Channel SocketException: ", e.toString());
+    }on SocketException catch(e, stackTrace){
+      _logger.severe("Channel SocketException: ", e, stackTrace);
       completer.complete(false);
-    } catch(e){
-      _logger.severe("Channel Unknown Exception: ", e.toString());
+    } catch(e, stackTrace){
+      _logger.severe("Channel Unknown Exception: ", e, stackTrace);
       completer.complete(false);
     }
     return completer.future;
@@ -77,11 +77,11 @@ class WSHandler{
       await authenticate(uws);
       _logger.info("_updateChannel WS Authentication Sent");
       return completer.future;
-    }on SocketException catch(e){
-      _logger.severe("_updateChannel SocketException: ", e.toString());
+    }on SocketException catch(e, stackTrace){
+      _logger.severe("_updateChannel SocketException: ", e, stackTrace);
       completer.complete(null);
-    } catch(e){
-      _logger.severe("_updateChannel Unknown Exception: ", e.toString());
+    } catch(e, stackTrace){
+      _logger.severe("_updateChannel Unknown Exception", e, stackTrace);
       completer.complete(null);
     }
     return completer.future;
@@ -111,8 +111,8 @@ class WSHandler{
     try {
       _channel!.sink.close();
       _logger.info("Channel Closed!");
-    }catch(e){
-      _logger.severe("Error Closing WSChannel: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("Error Closing WSChannel: ", e, stackTrace);
     }
   }
 }

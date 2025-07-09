@@ -47,8 +47,8 @@ class ProjectReference extends Reference{
       };
       _logger.fine("createJournal() Message: " + jsonData.toString());
       await update(jsonData);
-    }catch(e){
-      _logger.severe("createJournal() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("createJournal() Exception: ", e, stackTrace);
     }
   }
 
@@ -61,8 +61,8 @@ class ProjectReference extends Reference{
       };
       _logger.fine("removeJournal() Message: " + jsonData.toString());
       await update(jsonData);
-    }catch(e){
-      _logger.severe("removeJournal() Exception: " + e.toString());
+    }catch(e, stackTrace){
+      _logger.severe("removeJournal() Exception: ", e, stackTrace);
     }
   }
 }

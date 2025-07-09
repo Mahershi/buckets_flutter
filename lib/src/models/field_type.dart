@@ -27,4 +27,8 @@ class FieldType{
     }
     return false;
   }
+
+  static FieldType getTypeFromString(String type){
+    return type_map[type];
+  }
 }

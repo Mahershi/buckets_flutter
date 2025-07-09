@@ -54,8 +54,8 @@ class Project{
             jsonData['created_by_user'] ?? ''
         );
       }
-    }catch(e){
-      _logger.warning("Error Fetching Journal");
+    }catch(e, stackTrace){
+      _logger.warning("Error Fetching Journal", e, stackTrace);
       throw UnknownException("Error Fetching Journal");
     }
     return Journal.empty();
@@ -106,8 +106,8 @@ class Project{
         var responseBody = await response.stream.bytesToString();
         _logger.info(responseBody);
       }
-    }catch(e){
-      _logger.severe("Error Uploading File: ${e.toString()}");
+    }catch(e, stackTrace){
+      _logger.severe("Error Uploading File: ", e, stackTrace);
     }
     return "";
   }

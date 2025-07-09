@@ -60,8 +60,8 @@ class Journal {
       }else{
         _logger.severe("${response.body}");
       }
-    }catch(e){
-      _logger.warning("Error Fetching Record");
+    }catch(e, stackTrace){
+      _logger.warning("Error Fetching Record", e, stackTrace);
       throw UnknownException("Error Fetching Record");
     }
     return Record.empty();

@@ -57,8 +57,8 @@ class JWTTokenHandler{
           _logger.severe("Refreshing JWT Failed: " + response.statusCode.toString());
           refreshed = false;
         }
-      }catch(e){
-        _logger.severe("JWT Refresh Exception: " + e.toString());
+      }catch(e, stackTrace){
+        _logger.severe("JWT Refresh Exception: ", e, stackTrace);
         refreshed = false;
       }
 
