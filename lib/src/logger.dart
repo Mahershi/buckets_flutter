@@ -6,5 +6,11 @@ void setupLogging(Level level) {
 
   Logger.root.onRecord.listen((LogRecord rec) {
     print('${rec.level.name}: ${rec.loggerName}: ${rec.message}');
+    if (rec.error != null) {
+      print('  ERROR: ${rec.error}');
+    }
+    if (rec.stackTrace != null) {
+      print('  STACKTRACE: ${rec.stackTrace}');
+    }
   });
 }
