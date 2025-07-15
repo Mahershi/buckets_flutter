@@ -23,36 +23,36 @@ class JWTTokenHandler{
     _refreshInterval = 14;
 
     refreshToken();
-    _logger.info("JWT Initialized");
+    _logger.fine("JWT Initialized");
   }
 
   void stop(){
     _shouldRefresh = false;
-    _logger.info("Stopped JWT Refresh!");
+    _logger.fine("Stopped JWT Refresh!");
   }
 
   // Async method to refresh token in background
   // TODO: if stop is called, this loop doesnt stop until it finished its wait of _refreshInterval. there is no event handling.
   void refreshToken() async {
-    _logger.info("JWT Refresh Loop triggered");
+    _logger.fine("JWT Refresh Loop triggered");
     while(_shouldRefresh){
       await Future.delayed(Duration(minutes: _refreshInterval), (){});
       refreshed = false;
       try{
-        _logger.info("Refreshing access token...");
-        _logger.info("JWT Refresh URL: " + Config.host + Config.tokenRefreshURL);
+        _logger.fine("Refreshing access token...");
+        _logger.fine("JWT Refresh URL: " + Config.host + Config.tokenRefreshURL);
         var response = await http.post(
             Uri.parse(Config.host + Config.tokenRefreshURL),
             body: {
               'refresh': _refreshToken
             }
         );
-        _logger.info("JWT Refresh Status Code: " + response.statusCode.toString());
+        _logger.fine("JWT Refresh Status Code: " + response.statusCode.toString());
         if (response.statusCode == 200){
           var json = jsonDecode(response.body);
           _accessToken = json['access'];
           refreshed = true;
-          _logger.info("JWT Refresh Success!");
+          _logger.fine("JWT Refresh Success!");
         }else{
           _logger.severe("Refreshing JWT Failed: " + response.statusCode.toString());
           refreshed = false;
@@ -63,7 +63,7 @@ class JWTTokenHandler{
       }
 
     }
-    _logger.info("JWT Refresh Loop Exited!");
+    _logger.fine("JWT Refresh Loop Exited!");
   }
 
   Map<String, String> authHeader(){

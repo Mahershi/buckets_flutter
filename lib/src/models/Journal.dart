@@ -36,8 +36,8 @@ class Journal {
   // TODO: test pending.
   Future<Record> record(String record) async {
     try{
-      _logger.info("Fetching record URL: ${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record=${record}");
-      _logger.info("Client Auth Header: ${BucketAuth.headers()}");
+      _logger.fine("Fetching record URL: ${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record=${record}");
+      _logger.fine("Client Auth Header: ${BucketAuth.headers()}");
       var response = await http.post(
           Uri.parse(
               "${Config.host}${Config.getJournal}${_id}/${Config.getRecord}/?project_id=${_project.id}",
@@ -47,7 +47,7 @@ class Journal {
           },
           headers: BucketAuth.headers()
       );
-      _logger.info("Fetch Record StatusCode ${response.statusCode}");
+      _logger.fine("Fetch Record StatusCode ${response.statusCode}");
       if (response.statusCode == 200){
         var jsonData = jsonDecode(response.body)['data'];
         _logger.fine("Fetched Record JSON: " + jsonData.toString());

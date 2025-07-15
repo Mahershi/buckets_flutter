@@ -29,7 +29,7 @@ class BucketAuth{
   static Future<bool> clientLogin(String clientId, String clientKey) async {
     _clientLoggedIn = false;
     try{
-      _logger.info("Auth URL: " + Config.host + Config.clientTokenURL);
+      _logger.fine("Auth URL: " + Config.host + Config.clientTokenURL);
       var response = await http.post(
         Uri.parse(Config.host + Config.clientTokenURL),
         body: {
@@ -37,13 +37,13 @@ class BucketAuth{
           "client_key": clientKey
         },
       );
-      _logger.info("Auth Status Code: " + response.statusCode.toString());
+      _logger.fine("Auth Status Code: " + response.statusCode.toString());
       if (response.statusCode == 200){
 
         var json = jsonDecode(response.body);
         _clientJwtTokenHandler = JWTTokenHandler(json['access'], json['refresh']);
         _clientLoggedIn = true;
-        _logger.info("Client Logged In");
+        _logger.fine("Client Logged In");
 
         return await _getClient();
       }
@@ -59,7 +59,7 @@ class BucketAuth{
   static Future<bool> userLoginWithCredentials(String email, String password) async {
     _userLoggedIn = false;
     try{
-      _logger.info("Auth URL: " + Config.host + Config.tokenURL);
+      _logger.fine("Auth URL: " + Config.host + Config.tokenURL);
       var response = await http.post(
         Uri.parse(Config.host + Config.tokenURL),
         body: {
@@ -67,13 +67,13 @@ class BucketAuth{
           "password": password
         },
       );
-      _logger.info("Auth Status Code: " + response.statusCode.toString());
+      _logger.fine("Auth Status Code: " + response.statusCode.toString());
       if (response.statusCode == 200){
 
         var json = jsonDecode(response.body);
         _userJwtTokenHandler = JWTTokenHandler(json['access'], json['refresh']);
         _userLoggedIn = true;
-        _logger.info("User Logged In");
+        _logger.fine("User Logged In");
         await _setCurUser();
 
         return true;
@@ -88,12 +88,12 @@ class BucketAuth{
 
   static Future<bool> _getClient() async {
     try{
-      _logger.info("Auth getClient URL: " + Config.host + Config.getClient);
+      _logger.fine("Auth getClient URL: " + Config.host + Config.getClient);
       var response = await http.get(
           Uri.parse(Config.host + Config.getClient),
           headers: headers()
       );
-      _logger.info('Response Code ' + response.statusCode.toString());
+      _logger.fine('Response Code ' + response.statusCode.toString());
       if (response.statusCode == 200){
         var json = jsonDecode(response.body);
         if (json['success']){
@@ -128,17 +128,17 @@ class BucketAuth{
 
   static Future<void> _setCurUser() async {
     try{
-      _logger.info("Auth User URL: " + Config.host + Config.userURL);
+      _logger.fine("Auth User URL: " + Config.host + Config.userURL);
       var response = await http.get(
           Uri.parse(Config.host + Config.userURL),
           headers: user_auth_header()
       );
-      _logger.info('Response Code ' + response.statusCode.toString());
+      _logger.fine('Response Code ' + response.statusCode.toString());
       if (response.statusCode == 200){
         var json = jsonDecode(response.body);
         if (json['success']){
           _curUser = User(json['data']['id'].toString(), json['data']['name'], json['data']['email']);
-          _logger.info('Current User initialized');
+          _logger.fine('Current User initialized');
         }
         return ;
       }
@@ -173,17 +173,17 @@ class BucketAuth{
   }
 
   static void closeClient(){
-    _logger.info("Closing client...");
+    _logger.fine("Closing client...");
     _clientLoggedIn = false;
     _clientJwtTokenHandler.stop();
     _curClient = ProjectClient.empty();
-    _logger.info("ProjectClient closed!");
+    _logger.fine("ProjectClient closed!");
   }
 
   static void logout(){
     // Notify JWT to no longer refresh token due to logout.
     _userJwtTokenHandler.stop();
     _curUser = User.empty();
-    _logger.info("User logged out!");
+    _logger.fine("User logged out!");
   }
 }

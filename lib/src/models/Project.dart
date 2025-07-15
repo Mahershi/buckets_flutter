@@ -35,14 +35,14 @@ class Project{
 
   Future<Journal> journal(String journalId) async {
     try{
-      _logger.info("Fetching journal URL: ${Config.host}${Config.getJournal}$journalId");
+      _logger.fine("Fetching journal URL: ${Config.host}${Config.getJournal}$journalId");
       var response = await http.get(
           Uri.parse(
             "${Config.host}${Config.getJournal}$journalId" ,
           ),
           headers: BucketAuth.headers()
       );
-      _logger.info("Fetch Journal StatusCode ${response.statusCode}");
+      _logger.fine("Fetch Journal StatusCode ${response.statusCode}");
       if (response.statusCode == 200){
         var jsonData = jsonDecode(response.body)['data'];
         _logger.fine("Fetched Journal JSON: " + jsonData.toString());
@@ -75,7 +75,7 @@ class Project{
       return "";
     }
     try{
-      _logger.info("File Upload URL: ${Config.host}${Config.storage}?project_id=${id}");
+      _logger.fine("File Upload URL: ${Config.host}${Config.storage}?project_id=${id}");
       var req = await http.MultipartRequest(
           "POST",
           Uri.parse(
@@ -91,11 +91,11 @@ class Project{
         )
       );
       var response = await req.send();
-      _logger.info("Status Code: ${response.statusCode}");
+      _logger.fine("Status Code: ${response.statusCode}");
       if (response.statusCode == 201) {
-        _logger.info("Upload Success!");
+        _logger.fine("Upload Success!");
         var jsonResponse = jsonDecode(await response.stream.bytesToString());
-        _logger.info(jsonResponse);
+        _logger.fine(jsonResponse);
         String slug = jsonResponse['data']['url'];
         if (slug.startsWith('/')){
           slug = slug.substring(1,);
@@ -104,7 +104,7 @@ class Project{
       } else {
         _logger.severe("Upload failed: ${response.statusCode}");
         var responseBody = await response.stream.bytesToString();
-        _logger.info(responseBody);
+        _logger.fine(responseBody);
       }
     }catch(e, stackTrace){
       _logger.severe("Error Uploading File: ", e, stackTrace);

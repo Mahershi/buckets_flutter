@@ -47,7 +47,7 @@ abstract class Reference<T>{
       _prevSnapshot = null;
       _wsHandler!.close();
       controller!.sink.close();
-      _logger.info("Reference Closed!");
+      _logger.fine("Reference Closed!");
     }catch(e, stackTrace){
       _logger.severe("Error closing Reference, Exception: ", e, stackTrace);
     }

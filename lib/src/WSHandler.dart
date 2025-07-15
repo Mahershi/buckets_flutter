@@ -21,7 +21,7 @@ class WSHandler{
     try{
       await _channel!.ready;
       broadcast = _channel!.stream.asBroadcastStream();
-      _logger.info("opening unauthenticated WS Connection Success");
+      _logger.fine("opening unauthenticated WS Connection Success");
       // stream ID:0
       broadcast!.listen((event) {
         Map<String, dynamic> json = jsonDecode(event);
@@ -31,7 +31,7 @@ class WSHandler{
         }else if(json['type'] == 'authentication'){
           if (json['data']['authentication'] == 'Success'){
             completer.complete(true);
-            _logger.info("Channel authentication success");
+            _logger.fine("Channel authentication success");
           }else{
             completer.complete(false);
             _logger.severe("Channel authentication failed");
@@ -58,7 +58,7 @@ class WSHandler{
     Completer<WebSocketChannel?> completer = Completer<WebSocketChannel?>();
     try{
       await uws.ready;
-      _logger.info("_updateChannel WS Connection Success");
+      _logger.fine("_updateChannel WS Connection Success");
       uws.stream.listen((event) {
         Map<String, dynamic> json = jsonDecode(event);
         if (json['type'] == 'error'){
@@ -75,7 +75,7 @@ class WSHandler{
         }
       });
       await authenticate(uws);
-      _logger.info("_updateChannel WS Authentication Sent");
+      _logger.fine("_updateChannel WS Authentication Sent");
       return completer.future;
     }on SocketException catch(e, stackTrace){
       _logger.severe("_updateChannel SocketException: ", e, stackTrace);
@@ -88,7 +88,7 @@ class WSHandler{
   }
 
   static _openUnauthenticatedChannel(String wsUrl){
-    _logger.info("Opening Unauthenticated WS: " + wsUrl);
+    _logger.fine("Opening Unauthenticated WS: " + wsUrl);
     Uri uri = Uri.parse('${wsUrl}/');
     return WebSocketChannel.connect(
       uri,
@@ -101,7 +101,7 @@ class WSHandler{
   So have to pass the object here
    */
   authenticate(WebSocketChannel channel) async {
-    _logger.info("Sending Auth message over channel: " + channel.toString());
+    _logger.fine("Sending Auth message over channel: " + channel.toString());
     channel.sink.add(
       jsonEncode(BucketAuth.auth_message())
     );
@@ -110,7 +110,7 @@ class WSHandler{
   close(){
     try {
       _channel!.sink.close();
-      _logger.info("Channel Closed!");
+      _logger.fine("Channel Closed!");
     }catch(e, stackTrace){
       _logger.severe("Error Closing WSChannel: ", e, stackTrace);
     }

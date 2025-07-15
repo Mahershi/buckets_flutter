@@ -61,14 +61,14 @@ class Config{
       case Environment.DEVELOPMENT:
         // this is default.
         Config._currentEnvironment = env;
-        _logger.info("ENVIRONMENT: DEVELOPMENT");
+        _logger.fine("ENVIRONMENT: DEVELOPMENT");
         break;
       case Environment.STAGING:
         Config._host = "http://192.168.0.200:9999/";
         Config._wsHost = "ws://192.168.0.200:9999/";
         Config._port = 9999;
         Config._currentEnvironment = env;
-        _logger.info("ENVIRONMENT: STAGING");
+        _logger.fine("ENVIRONMENT: STAGING");
     }
   }
 }
