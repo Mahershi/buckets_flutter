@@ -7,7 +7,6 @@ import '../../buckets.dart';
 import '../config.dart';
 import 'exceptions.dart';
 import 'dart:io';
-import 'package:path/path.dart';
 import 'package:mime/mime.dart';
 
 final Logger _logger = Logger('Project');

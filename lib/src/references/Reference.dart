@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:buckets/src/WSHandler.dart';
 import 'package:logging/logging.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import '../snapshots/Snapshot.dart';
 
 final Logger _logger = Logger('Reference');
