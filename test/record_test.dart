@@ -1,6 +1,4 @@
-import 'package:buckets/src/references/JournalReference.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:buckets/src/authentication/auth.dart' as auth;
 import 'package:buckets/buckets.dart';
 import 'package:logging/logging.dart';

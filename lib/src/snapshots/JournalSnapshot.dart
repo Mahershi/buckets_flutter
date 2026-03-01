@@ -1,7 +1,5 @@
 import 'package:buckets/buckets.dart';
 
-import 'Snapshot.dart';
-
 // data field here will not be map
 // it needs to be list of RecordSnapshot or something
 // TODO: figure this out.
