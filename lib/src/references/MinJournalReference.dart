@@ -30,7 +30,6 @@ class MinJournalReference extends Reference{
     broadcast.listen((event) {
       // convert string event to ProjectSnapshot object
       Map<String, dynamic> jsonEvent = jsonDecode(event);
-
       controller.sink.add(MinJournalSnapshot(
           jsonEvent['data']['id'].toString(),
           jsonEvent['data']['name'],
@@ -67,5 +66,4 @@ class MinJournalReference extends Reference{
       _logger.severe("removeRecord() Exception: ", e, stackTrace);
     }
   }
-
 }

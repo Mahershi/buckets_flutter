@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:buckets/src/WSHandler.dart';
 import 'package:logging/logging.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 import '../snapshots/Snapshot.dart';
 
 final Logger _logger = Logger('Reference');
@@ -17,6 +18,10 @@ Handles WS Connection, Authentication, Buffering prev snapshot to send to new co
 TODO: implement disconnection of WS channel for live snapshots
  */
 abstract class Reference<T>{
+  // created wsUrl just cz wanted to store the String url
+  // and use it in where() in JournalReference to chanin object creation.
+  // couldn't pass handler bcz then they would share broadcast stream.
+  final String wsUrl;
   WSHandler? _wsHandler;
   // stream ID:2
   StreamController<Snapshot>? controller;
@@ -24,9 +29,13 @@ abstract class Reference<T>{
 
   Snapshot get prevSnapshot => _prevSnapshot!;
 
-  Reference(String wsUrl){
-    _wsHandler = WSHandler(wsUrl);
+  Reference(this.wsUrl){
+    _wsHandler = WSHandler(this.wsUrl);
   }
+
+  // Exposed WS Handler, we don't like it but the channel obj in it is private.
+  // maybe we will change this later.
+  WSHandler get wsHandler => _wsHandler!;
 
   Future<void> _sendPrevSnapshot() async{
     _logger.fine("Sending Previous Snapshot... delayed 1 second");
@@ -52,6 +61,15 @@ abstract class Reference<T>{
     }
   }
 
+  // returns true once query is configured.
+  // to denote completion of handshake and query building.
+  // initiate snapshot receiver (parseMessage after this)
+  // pass thj
+  Future<bool> configureQuery(Stream stream) async {
+    _logger.info("called configureQuery()");
+    return true;
+  }
+
 
   Stream<Snapshot> snapshots() {
     // if controller already initialized, ws already open.
@@ -64,22 +82,28 @@ abstract class Reference<T>{
 
     _wsHandler!.openAuthenticatedChannel().then((success) {
       if (success){
-        parseMessage(_wsHandler!.broadcast!).listen(
-              (snapshot) {
-            // Pass the snapshots from parseMessage to the controller stream
-            _prevSnapshot = snapshot;
-            controller!.add(snapshot);
-          },
-          onError: (error) {
-            // Handle errors in parseMessage stream
-            controller!.addError(error);
-            controller!.close();
-          },
-          onDone: () {
-            // Close the controller stream once done
-            controller!.close();
-          },
-        );
+        configureQuery(_wsHandler!.broadcast).then((success){
+          _logger.info("Query Configuration Status: ${success}");
+          if (success){
+            parseMessage(_wsHandler!.broadcast).listen(
+                  (snapshot) {
+                // Pass the snapshots from parseMessage to the controller stream
+                _prevSnapshot = snapshot;
+                controller!.add(snapshot);
+              },
+              onError: (error) {
+                // Handle errors in parseMessage stream
+                controller!.addError(error);
+                controller!.close();
+              },
+              onDone: () {
+                // Close the controller stream once done
+                controller!.close();
+              },
+            );
+          }
+        });
+
       }
       else{
         _logger.severe("WS Authentication Failure");
@@ -102,11 +126,14 @@ abstract class Reference<T>{
   // return true/false on success.
   Future<bool> update(Map<String, dynamic> message) async {
     try{
-      final channel = await _wsHandler!.updateChannel();
+      var channel = await _wsHandler!.updateChannel();
       // channel could be null or a WSChannel object
       if (channel != null){
+        channel = channel as WebSocketChannel;
+        // no need to configure query for update channel.
         channel.sink.add(jsonEncode(message));
         await channel.sink.close();
+
         return true;
       }
     }catch(e, stackTrace){

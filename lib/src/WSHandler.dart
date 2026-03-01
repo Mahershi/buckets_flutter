@@ -13,31 +13,45 @@ class WSHandler{
   WebSocketChannel? _channel;
   final String wsUrl;
   WSHandler(this.wsUrl);
-  Stream? broadcast;
+  Stream? _broadcast;
+
+  Stream get broadcast => _broadcast!;
 
   Future<bool> openAuthenticatedChannel() async {
     _channel = _openUnauthenticatedChannel(wsUrl);
     Completer<bool> completer = Completer<bool>();
     try{
       await _channel!.ready;
-      broadcast = _channel!.stream.asBroadcastStream();
+      _broadcast = _channel!.stream.asBroadcastStream();
       _logger.fine("opening unauthenticated WS Connection Success");
       // stream ID:0
       broadcast!.listen((event) {
         Map<String, dynamic> json = jsonDecode(event);
         if (json['type'] == 'error'){
-          completer.complete(false);
-          _logger.severe("Channel authentication failed");
-        }else if(json['type'] == 'authentication'){
-          if (json['data']['authentication'] == 'Success'){
-            completer.complete(true);
-            _logger.fine("Channel authentication success");
-          }else{
+          try{
             completer.complete(false);
             _logger.severe("Channel authentication failed");
+          }catch(e){
+            _logger.severe("Received error msg from server after authentication success!");
+            _logger.severe(json['error']);
+          }
+        }else if(json['type'] == 'authentication'){
+          if (json['data']['authentication'] == 'Success'){
+            try{
+              completer.complete(true);
+              _logger.fine("Channel authentication success");
+            }catch(e){
+              _logger.warning("Received duplicate authentication success event!");
+            }
+          }else{
+            try{
+              completer.complete(false);
+              _logger.severe("Channel authentication failed");
+            }catch(e){
+              _logger.warning("Received back to back failure events!");
+            }
           }
         }
-
       });
       await authenticate(_channel!);
 
@@ -105,6 +119,10 @@ class WSHandler{
     channel.sink.add(
       jsonEncode(BucketAuth.auth_message())
     );
+  }
+
+  sendMessage(Map<String, dynamic> message) async {
+    _channel!.sink.add(jsonEncode(message));
   }
 
   close(){

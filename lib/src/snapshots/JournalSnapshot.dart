@@ -1,9 +1,11 @@
+import 'package:buckets/buckets.dart';
+
 import 'Snapshot.dart';
 
 // data field here will not be map
 // it needs to be list of RecordSnapshot or something
 // TODO: figure this out.
-class JournalSnapshot extends Snapshot{
+class JournalSnapshot extends MinJournalSnapshot{
   // here data is map
   /*
   {
@@ -22,4 +24,5 @@ class JournalSnapshot extends Snapshot{
    */
 
   JournalSnapshot(id, name, data) : super(id, name, data);
+  JournalSnapshot.empty() : super("", "", {"records": []});
 }

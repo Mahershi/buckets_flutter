@@ -70,21 +70,26 @@ class Journal {
   bool isNull(){
     return this._id == '';
   }
-
-  // default returns reference to Extended Journal
-  // if type give, returns MinJournal (for dashboard)
-  T getReference<T>(){
-    if (T == MinJournalReference) {
-      String wsUrl = '${Config.wsHost}${Config.journalWebSocketURL}${this._id}';
-      return MinJournalReference(wsUrl) as T;
-    }else {
-      String wsUrl = '${Config.wsHost}${Config.exjournalWebSocketURL}${this._id}';
-      return JournalReference(wsUrl) as T;
-    }
-  }
   //
-  // JournalReference getReference(){
-  //   String wsUrl = '${Config.wsHost}${Config.exjournalWebSocketURL}${this._id}';
-  //   return JournalReference(wsUrl);
+  // // default returns reference to Extended Journal
+  // // if type give, returns MinJournal (for dashboard)
+  // T getReference<T>(){
+  //   if (T == MinJournalReference) {
+  //     String wsUrl = '${Config.wsHost}${Config.journalWebSocketURL}${this._id}';
+  //     return MinJournalReference(wsUrl) as T;
+  //   }else {
+  //     String wsUrl = '${Config.wsHost}${Config.exjournalWebSocketURL}${this._id}';
+  //     return JournalReference(wsUrl) as T;
+  //   }
   // }
+  //
+  JournalReference getReference(){
+    String wsUrl = '${Config.wsHost}${Config.exjournalWebSocketURL}${this._id}';
+    return JournalReference(wsUrl);
+  }
+
+  MinJournalReference getMinReference(){
+    String wsUrl = '${Config.wsHost}${Config.journalWebSocketURL}${this._id}';
+    return MinJournalReference(wsUrl);
+  }
 }

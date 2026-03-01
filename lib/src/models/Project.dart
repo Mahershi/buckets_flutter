@@ -32,13 +32,22 @@ class Project{
         _created_at = '',
         _is_active=true;
 
-  Future<Journal> journal(String journalId) async {
+  Future<Journal> journal(String journalName) async {
     try{
-      _logger.fine("Fetching journal URL: ${Config.host}${Config.getJournal}$journalId");
-      var response = await http.get(
+      _logger.fine("Fetching journal URL: ${Config.host}${Config.getJournalByName}/?project_id=${_id}");
+      // var response = await http.get(
+      //     Uri.parse(
+      //       "${Config.host}${Config.getJournal}$journalId" ,
+      //     ),
+      //     headers: BucketAuth.headers()
+      // );
+      var response = await http.post(
           Uri.parse(
-            "${Config.host}${Config.getJournal}$journalId" ,
+              "${Config.host}${Config.getJournalByName}/?project_id=${_id}",
           ),
+          body: {
+            "journal_name": journalName
+          },
           headers: BucketAuth.headers()
       );
       _logger.fine("Fetch Journal StatusCode ${response.statusCode}");

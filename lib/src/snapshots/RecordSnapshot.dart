@@ -28,6 +28,9 @@ class RecordSnapshot extends Snapshot{
     // _logger.fine("get() data after dot iteration: " + data.toString());
     // _logger.fine("get() field after dot iteration: " + field.toString());
     if (data.containsKey(field)){
+      if (type_map[data[field]['type']] == FieldType.BOOLEAN){
+        return data[field]['value'].toLowerCase() == "true";
+      }
       return data[field]['value'];
     }
     _logger.warning("get() field \'${field}\' not found");
