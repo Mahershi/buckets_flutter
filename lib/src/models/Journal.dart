@@ -67,6 +67,65 @@ class Journal {
     return Record.empty();
   }
 
+  Future<bool> recordExists(String record) async {
+    try{
+      _logger.fine("Fetching record URL: ${Config.host}${Config.getJournal}${_id}/${Config.hasRecord}?record=${record}");
+      _logger.fine("Client Auth Header: ${BucketAuth.headers()}");
+      var response = await http.post(
+          Uri.parse(
+            "${Config.host}${Config.getJournal}${_id}/${Config.hasRecord}/?project_id=${_project.id}",
+          ),
+          body: {
+            "record": record
+          },
+          headers: BucketAuth.headers()
+      );
+      _logger.fine("Fetch Record StatusCode ${response.statusCode}");
+      if (response.statusCode == 200){
+        return true;
+      }
+      if (response.statusCode == 404){
+        return false;
+      }
+    }catch(e, stackTrace){
+      _logger.warning("Error Fetching Record", e, stackTrace);
+      throw UnknownException("Error Fetching Record");
+    }
+    // TODO: might return false in cases unknown - like server error and other status codes.
+    return false;
+  }
+
+  Future<int> count({List<Map<String, dynamic>>? filters}) async {
+    try {
+      _logger.fine("Count URL: ${Config.host}${Config.getJournal}${_id}/${Config.count}/");
+
+      var response = await http.post(
+          Uri.parse(
+            "${Config.host}${Config.getJournal}${_id}/${Config.count}/?project_id=${_project.id}",
+          ),
+          body: jsonEncode({
+            "filters": filters ?? []
+          }),
+          headers: {
+            ...BucketAuth.headers(),
+            'Content-Type': 'application/json'
+          }
+      );
+
+      _logger.fine("Count StatusCode ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body)['data']['count'] as int;
+      } else {
+        _logger.severe("${response.body}");
+      }
+    } catch (e, stackTrace) {
+      _logger.warning("Error fetching count", e, stackTrace);
+      throw UnknownException("Error fetching count");
+    }
+    return 0;
+  }
+
   bool isNull(){
     return this._id == '';
   }

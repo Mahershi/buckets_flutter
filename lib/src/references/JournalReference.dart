@@ -160,7 +160,9 @@ class JournalReference extends MinJournalReference {
   @override
   Stream<JournalSnapshot> parseMessage(Stream broadcast) {
     // controller for stream ID:1
-    StreamController<JournalSnapshot> controller = StreamController<JournalSnapshot>();
+    StreamController<JournalSnapshot> controller = StreamController<JournalSnapshot>(onCancel: () async {
+      print("Controller closed from parseMessage");
+    });
     broadcast.listen((event) {
       // convert string event to ProjectSnapshot object
       Map<String, dynamic> jsonEvent = jsonDecode(event);

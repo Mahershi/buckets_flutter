@@ -28,6 +28,7 @@ abstract class Reference<T>{
   Snapshot? _prevSnapshot;
 
   Snapshot get prevSnapshot => _prevSnapshot!;
+  StreamSubscription? _subscription;
 
   Reference(this.wsUrl){
     _wsHandler = WSHandler(this.wsUrl);
@@ -78,14 +79,21 @@ abstract class Reference<T>{
       _sendPrevSnapshot();
       return controller!.stream;
     }
-    controller = StreamController<Snapshot>.broadcast();
+    controller = StreamController<Snapshot>.broadcast(
+      onCancel: () async {
+        print("Consumer broadcast cancelled!");
+        await _subscription?.cancel();
+        close();
+      }
+    );
 
     _wsHandler!.openAuthenticatedChannel().then((success) {
       if (success){
         configureQuery(_wsHandler!.broadcast).then((success){
           _logger.info("Query Configuration Status: ${success}");
           if (success){
-            parseMessage(_wsHandler!.broadcast).listen(
+            // track this subscription to cancel when consumer broadcast (Stream ID 2)closes.
+            _subscription = parseMessage(_wsHandler!.broadcast).listen(
                   (snapshot) {
                 // Pass the snapshots from parseMessage to the controller stream
                 _prevSnapshot = snapshot;

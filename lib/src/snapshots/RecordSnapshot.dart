@@ -5,6 +5,7 @@ import 'Snapshot.dart';
 final Logger _logger = Logger('RecordSnapshot');
 
 class RecordSnapshot extends Snapshot{
+  // TODO: to get record name / snapshot id, need to call RecordSnapshot.name -> misleading.
   // here data is map
   /*
   {

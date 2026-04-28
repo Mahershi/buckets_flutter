@@ -25,6 +25,7 @@ export 'src/models/project_client.dart' show ProjectClient;
 export 'src/references/ProjectReference.dart' show ProjectReference;
 export 'src/references/RecordReference.dart' show RecordReference;
 export 'src/references/MinJournalReference.dart' show MinJournalReference;
+export 'src/references/JournalReference.dart' show JournalReference;
 export 'src/snapshots/RecordSnapshot.dart' show RecordSnapshot;
 export 'src/snapshots/ProjectSnapshot.dart' show ProjectSnapshot;
 export 'src/snapshots/MinJournalSnapshot.dart' show MinJournalSnapshot;

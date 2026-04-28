@@ -18,8 +18,10 @@ class Config{
   static const String _webSocketURL = 'bucket/stream/';
   static const String _getClient = 'app/project-client/me';
   static const String _getJournal = 'app/journal/';
+  static const String _count = 'count';
   static const String _getJournalByName = 'app/journal/me';
   static const String _getRecord = 'record';
+  static const String _hasRecord = 'has_record';
   static const String _projectWebSocketURL = 'project/stream/';
   static const String _journalWebSocketURL = 'journal/stream/';
   static const String _exjournalWebSocketURL = 'exjournal/stream/';
@@ -41,8 +43,10 @@ class Config{
   static String get userURL => _userURL;
   static String get getClient => _getClient;
   static String get getJournal => _getJournal;
+  static String get count => _count;
   static String get getJournalByName => _getJournalByName;
   static String get getRecord => _getRecord;
+  static String get hasRecord => _hasRecord;
   static String get projectWebSocketURL => _projectWebSocketURL;
   static String get journalWebSocketURL => _journalWebSocketURL;
   static String get exjournalWebSocketURL => _exjournalWebSocketURL;
