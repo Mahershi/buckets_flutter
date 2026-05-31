@@ -24,18 +24,14 @@ class ProjectReference extends Reference{
 
   @override
   Stream<ProjectSnapshot> parseMessage(Stream broadcast) {
-    // controller for stream ID:1
-    StreamController<ProjectSnapshot> controller = StreamController<ProjectSnapshot>();
-    broadcast.listen((event) {
-      // convert string event to ProjectSnapshot object
-      Map<String, dynamic> jsonEvent = jsonDecode(event);
-      controller.sink.add(ProjectSnapshot(
-        jsonEvent['data']['id'].toString(),
-        jsonEvent['data']['name'],
-        jsonEvent['data']['value']
-      ));
-    });
-    return controller.stream;
+    return baseParse<ProjectSnapshot>(
+      broadcast,
+          (data) => ProjectSnapshot(
+        data['id'].toString(),
+        data['name'],
+        data['value'],
+      ),
+    );
   }
 
   Future<void> createJournal(String name) async {

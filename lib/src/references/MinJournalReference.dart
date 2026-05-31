@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:buckets/src/references/Reference.dart';
 import 'package:buckets/src/snapshots/MinJournalSnapshot.dart';
 import 'package:logging/logging.dart';
@@ -25,18 +23,14 @@ class MinJournalReference extends Reference{
 
   @override
   Stream<MinJournalSnapshot> parseMessage(Stream broadcast) {
-    // controller for stream ID:1
-    StreamController<MinJournalSnapshot> controller = StreamController<MinJournalSnapshot>();
-    broadcast.listen((event) {
-      // convert string event to ProjectSnapshot object
-      Map<String, dynamic> jsonEvent = jsonDecode(event);
-      controller.sink.add(MinJournalSnapshot(
-          jsonEvent['data']['id'].toString(),
-          jsonEvent['data']['name'],
-          jsonEvent['data']['value']
-      ));
-    });
-    return controller.stream;
+    return baseParse<MinJournalSnapshot>(
+      broadcast,
+          (data) => MinJournalSnapshot(
+        data['id'].toString(),
+        data['name'],
+        data['value'],
+      ),
+    );
   }
 
   Future<void> createRecord(String name) async {

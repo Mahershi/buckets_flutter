@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:buckets/buckets.dart';
 import 'package:logging/logging.dart';
 
+import '../models/exceptions.dart';
+
 final Logger _logger = Logger("JournalReference");
 
 class JournalReference extends MinJournalReference {
@@ -42,6 +44,7 @@ class JournalReference extends MinJournalReference {
     late StreamSubscription sub;
     sub = stream.listen((event){
       Map<String, dynamic> json = jsonDecode(event);
+      _logger.fine(json);
       if (json['type'] == 'query'){
         if(checkQueryResponse(json)){
           completer.complete(true);
@@ -54,8 +57,10 @@ class JournalReference extends MinJournalReference {
         }
       }else if (json['type'] == 'error'){
         _logger.severe("Error configuring query: ${json['error']}");
+      } else {
+        _logger.warning('Unknown event while waiting for query configuration: ${json['type']}');
       }
-      _logger.warning('Unknown event while waiting for query configuration: ${json['type']}');
+
     });
     wsHandler.sendMessage({
       "type": "query",
@@ -135,10 +140,10 @@ class JournalReference extends MinJournalReference {
         return _update_record(event);
       case 'remove_record':
         return _remove_record(event);
+      default:
+        _logger.warning("Ignoring non-data event: ${event['type']}");
+        throw const BucketsParseException();
     }
-    _logger.warning("Unexpected message: ${event['type']}");
-    return JournalSnapshot.empty();
-    // return JournalSnapshot("", "", <String, dynamic>{});
   }
 
 
@@ -157,21 +162,53 @@ class JournalReference extends MinJournalReference {
     });
   }
 
+  // this logic has custom logic mapping based on event type
+  // cannot directly use _baseParse from parent.
+  // any change in parent _baseParse, need to be propagated here as well
   @override
   Stream<JournalSnapshot> parseMessage(Stream broadcast) {
-    // controller for stream ID:1
-    StreamController<JournalSnapshot> controller = StreamController<JournalSnapshot>(onCancel: () async {
-      print("Controller closed from parseMessage");
-    });
-    broadcast.listen((event) {
-      // convert string event to ProjectSnapshot object
-      Map<String, dynamic> jsonEvent = jsonDecode(event);
-      print(jsonEvent);
-      // 1. "update" event - full snapshot
-      // 2. "update_record" - update the record id in the prev snapshot and sink it
-      // 3. "remove_record" - remove the record id in the prev snapshot and sink it.
-      controller.sink.add(eventMap(jsonEvent));
-    });
+    late StreamController<JournalSnapshot> controller;
+    StreamSubscription? subscription;
+    controller = StreamController<JournalSnapshot>(
+      onCancel: () async {
+        await subscription?.cancel();
+      },
+    );
+    subscription = broadcast.listen(
+          (event) {
+        try {
+          final jsonEvent = jsonDecode(event);
+          final type = jsonEvent['type'];
+          switch (type) {
+            case 'update':
+            case 'update_record':
+            case 'remove_record':
+            controller.add(eventMap(jsonEvent));
+            break;
+
+            case 'query':
+            case 'authentication':
+            // expected control events → ignore
+            break;
+
+            default:
+            _logger.warning("Unknown event type: $type");
+            // ignore, but DO NOT emit empty snapshot
+          }
+        } catch (e) {
+          controller.addError(
+            BucketsParseException(cause: e),
+          );
+        }
+      },
+      onError: (error) {
+        controller.addError(error);
+      },
+      onDone: () {
+        controller.close();
+      },
+      cancelOnError: false,
+    );
     return controller.stream;
   }
 

@@ -26,19 +26,14 @@ class RecordReference extends Reference{
 
   @override
   Stream<RecordSnapshot> parseMessage(Stream broadcast) {
-    // controller for stream ID:1
-    StreamController<RecordSnapshot> controller = StreamController<RecordSnapshot>();
-    broadcast.listen((event) {
-      // convert string event to ProjectSnapshot object
-      Map<String, dynamic> jsonEvent = jsonDecode(event);
-      controller.sink.add(RecordSnapshot(
-          jsonEvent['data']['id'].toString(),
-          jsonEvent['data']['name'],
-          jsonEvent['data']['value']
-      ));
-
-    });
-    return controller.stream;
+    return baseParse<RecordSnapshot>(
+      broadcast,
+          (data) => RecordSnapshot(
+        data['id'].toString(),
+        data['name'],
+        data['value'],
+      ),
+    );
   }
 
   @override

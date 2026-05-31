@@ -70,8 +70,8 @@ class Config{
         _logger.fine("ENVIRONMENT: DEVELOPMENT");
         break;
       case Environment.STAGING:
-        Config._host = "http://103.241.45.79:9999/";
-        Config._wsHost = "ws://103.241.45.79:9999/";
+        Config._host = "https://api.buckets.mahershi.com/";
+        Config._wsHost = "wss://api.buckets.mahershi.com/";
         Config._port = 9999;
         Config._currentEnvironment = env;
         _logger.fine("ENVIRONMENT: STAGING");

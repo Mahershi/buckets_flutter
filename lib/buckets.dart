@@ -12,7 +12,6 @@ import 'src/logger.dart';
 import 'package:http/http.dart' as http;
 
 export 'src/authentication/auth.dart' show BucketAuth;
-// export 'src/bucket_snapshot.dart' show BucketSnapshot;
 export 'src/models/user.dart' show User;
 export 'src/models/bucket.dart' show Bucket;
 export 'src/models/access.dart' show Access;
@@ -30,42 +29,58 @@ export 'src/snapshots/RecordSnapshot.dart' show RecordSnapshot;
 export 'src/snapshots/ProjectSnapshot.dart' show ProjectSnapshot;
 export 'src/snapshots/MinJournalSnapshot.dart' show MinJournalSnapshot;
 export 'src/snapshots/JournalSnapshot.dart' show JournalSnapshot;
+export 'src/models/exceptions.dart';
 
 final Logger _logger = Logger('Buckets');
 
-class Buckets{
-  static void setLogLevel({Level level=Level.WARNING}){
+class Buckets {
+  static void setLogLevel({Level level = Level.WARNING}) {
     setupLogging(level);
   }
 
-  static Level getLogLevel(){
+  static Level getLogLevel() {
     return Logger.root.level;
   }
 
-  static void switchToDevelopment(){
+  static void switchToDevelopment() {
     Config.setEnvironment(Environment.DEVELOPMENT);
   }
-  static void switchToStaging(){
+
+  static void switchToStaging() {
     Config.setEnvironment(Environment.STAGING);
   }
 
-  static ProjectClient client(){
-    if (BucketAuth.loggedIn)
+  static ProjectClient client() {
+    if (BucketAuth.loggedIn) {
       return BucketAuth.curClient;
-    throw UnauthAccess("Client not Authenticated! Use BucketAuth.clientLogin()");
+    }
+
+    throw const BucketsAuthException(
+      message: "Client not authenticated. Call BucketAuth.clientLogin()",
+    );
   }
 
   static Project project() {
-    if (BucketAuth.loggedIn){
-      try{
-        return BucketAuth.curClient.project;
-      }catch(e, stackTrace){
-        _logger.warning("Unknown Exception when fetching Project!", e, stackTrace);
-        throw UnauthAccess("User not logged in! Use BucketAuth to login user!");
-      }
-    }else{
+    if (!BucketAuth.loggedIn) {
       _logger.warning("User not logged in! Use BucketAuth to login user!");
-      throw UnknownException("Error Fetching Project");
+      throw const BucketsAuthException(
+        message: "User not authenticated. Call BucketAuth.login()",
+      );
+    }
+
+    try {
+      return BucketAuth.curClient.project;
+    } catch (e, stackTrace) {
+      _logger.warning(
+        "Error fetching project from client",
+        e,
+        stackTrace,
+      );
+
+      throw BucketsUnknownException(
+        message: "Failed to fetch project",
+        cause: e,
+      );
     }
   }
 }

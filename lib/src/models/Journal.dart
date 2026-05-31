@@ -1,11 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 
 import '../../buckets.dart';
 import '../config.dart';
-import '../references/JournalReference.dart';
 import 'exceptions.dart';
 
 final Logger _logger = Logger('Journal');
@@ -32,98 +32,129 @@ class Journal {
     _created_at = '',
     _created_by_user = '';
 
-  // Will create the record if doesnt exist
-  // TODO: test pending.
+  // this will create record with the name if it does not exist.
   Future<Record> record(String record) async {
-    try{
-      _logger.fine("Fetching record URL: ${Config.host}${Config.getJournal}${_id}/${Config.getRecord}?record=${record}");
-      _logger.fine("Client Auth Header: ${BucketAuth.headers()}");
-      var response = await http.post(
-          Uri.parse(
-              "${Config.host}${Config.getJournal}${_id}/${Config.getRecord}/?project_id=${_project.id}",
-          ),
-          body: {
-            "record": record
-          },
-          headers: BucketAuth.headers()
+    try {
+      final url = "${Config.host}${Config.getJournal}${_id}/${Config.getRecord}/?project_id=${_project.id}";
+      _logger.fine("Fetching record URL: $url");
+
+      final response = await http.post(
+        Uri.parse(url),
+        body: {
+          "record": record,
+        },
+        headers: BucketAuth.headers(),
       );
       _logger.fine("Fetch Record StatusCode ${response.statusCode}");
-      if (response.statusCode == 200){
-        var jsonData = jsonDecode(response.body)['data'];
-        _logger.fine("Fetched Record JSON: " + jsonData.toString());
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body)['data'];
         return Record(
           this,
           jsonData['id'].toString(),
           jsonData['name'].toString(),
-          jsonData['created_at'].toString()
+          jsonData['created_at'].toString(),
         );
-      }else{
-        _logger.severe("${response.body}");
       }
-    }catch(e, stackTrace){
+
+      throw BucketsServerException(
+        message: "Failed to fetch record",
+        cause: {
+          "statusCode": response.statusCode,
+          "body": response.body,
+        },
+      );
+
+    } on SocketException catch (e) {
+      throw BucketsConnectionException(
+        message: "Network error while fetching record",
+        cause: e,
+      );
+    } catch (e, stackTrace) {
       _logger.warning("Error Fetching Record", e, stackTrace);
-      throw UnknownException("Error Fetching Record");
+      if (e is BucketsException) rethrow;
+      throw BucketsUnknownException(
+        message: "Unexpected error while fetching record",
+        cause: e,
+      );
     }
-    return Record.empty();
   }
 
   Future<bool> recordExists(String record) async {
-    try{
-      _logger.fine("Fetching record URL: ${Config.host}${Config.getJournal}${_id}/${Config.hasRecord}?record=${record}");
-      _logger.fine("Client Auth Header: ${BucketAuth.headers()}");
-      var response = await http.post(
-          Uri.parse(
-            "${Config.host}${Config.getJournal}${_id}/${Config.hasRecord}/?project_id=${_project.id}",
-          ),
-          body: {
-            "record": record
-          },
-          headers: BucketAuth.headers()
+    try {
+      final url = "${Config.host}${Config.getJournal}${_id}/${Config.hasRecord}/?project_id=${_project.id}";
+      _logger.fine("Check record exists: $url");
+      final response = await http.post(
+        Uri.parse(url),
+        body: {
+          "record": record,
+        },
+        headers: BucketAuth.headers(),
       );
-      _logger.fine("Fetch Record StatusCode ${response.statusCode}");
-      if (response.statusCode == 200){
-        return true;
-      }
-      if (response.statusCode == 404){
-        return false;
-      }
-    }catch(e, stackTrace){
-      _logger.warning("Error Fetching Record", e, stackTrace);
-      throw UnknownException("Error Fetching Record");
+
+      if (response.statusCode == 200) return true;
+      if (response.statusCode == 404) return false;
+
+      throw BucketsServerException(
+        message: "Unexpected response while checking record existence",
+        cause: {
+          "statusCode": response.statusCode,
+          "body": response.body,
+        },
+      );
+
+    } on SocketException catch (e) {
+      throw BucketsConnectionException(
+        message: "Network error while checking record existence",
+        cause: e,
+      );
+    } catch (e, stackTrace) {
+      _logger.warning("Error checking record existence", e, stackTrace);
+      if (e is BucketsException) rethrow;
+      throw BucketsUnknownException(
+        message: "Unexpected error while checking record existence",
+        cause: e,
+      );
     }
-    // TODO: might return false in cases unknown - like server error and other status codes.
-    return false;
   }
 
   Future<int> count({List<Map<String, dynamic>>? filters}) async {
     try {
-      _logger.fine("Count URL: ${Config.host}${Config.getJournal}${_id}/${Config.count}/");
-
-      var response = await http.post(
-          Uri.parse(
-            "${Config.host}${Config.getJournal}${_id}/${Config.count}/?project_id=${_project.id}",
-          ),
-          body: jsonEncode({
-            "filters": filters ?? []
-          }),
-          headers: {
-            ...BucketAuth.headers(),
-            'Content-Type': 'application/json'
-          }
+      final url = "${Config.host}${Config.getJournal}${_id}/${Config.count}/?project_id=${_project.id}";
+      _logger.fine("Count URL: $url");
+      final response = await http.post(
+        Uri.parse(url),
+        body: jsonEncode({
+          "filters": filters ?? [],
+        }),
+        headers: {
+          ...BucketAuth.headers(),
+          'Content-Type': 'application/json',
+        },
       );
-
-      _logger.fine("Count StatusCode ${response.statusCode}");
-
       if (response.statusCode == 200) {
         return jsonDecode(response.body)['data']['count'] as int;
-      } else {
-        _logger.severe("${response.body}");
       }
+      throw BucketsServerException(
+        message: "Failed to fetch count",
+        cause: {
+          "statusCode": response.statusCode,
+          "body": response.body,
+        },
+      );
+
+    } on SocketException catch (e) {
+      throw BucketsConnectionException(
+        message: "Network error while fetching count",
+        cause: e,
+      );
     } catch (e, stackTrace) {
       _logger.warning("Error fetching count", e, stackTrace);
-      throw UnknownException("Error fetching count");
+      if (e is BucketsException) rethrow;
+      throw BucketsUnknownException(
+        message: "Unexpected error while fetching count",
+        cause: e,
+      );
     }
-    return 0;
   }
 
   bool isNull(){

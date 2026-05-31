@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:buckets/src/models/exceptions.dart';
 import 'package:logging/logging.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -21,50 +22,93 @@ class WSHandler{
     _channel = _openUnauthenticatedChannel(wsUrl);
     Completer<bool> completer = Completer<bool>();
     try{
-      await _channel!.ready;
+
+      await _channel!.ready.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw BucketsConnectionTimeoutException()
+      );
+
       _broadcast = _channel!.stream.asBroadcastStream();
       _logger.fine("opening unauthenticated WS Connection Success");
+
+      // listen for close separately
+      _broadcast!.handleError((error) {
+        _logger.severe("WS stream error: $error");
+      }).listen(
+        null,
+        onDone: () {
+          final closeCode = _channel?.closeCode;
+          final closeReason = _channel?.closeReason;
+          _logger.info("WS closed — code: $closeCode, reason: $closeReason");
+
+          // normal closure codes: 1000, 1001 — no retry needed
+          // everything else — retry
+          _onWsClosed(closeCode);
+        },
+      );
+
       // stream ID:0
       broadcast.listen((event) {
         Map<String, dynamic> json = jsonDecode(event);
         if (json['type'] == 'error'){
-          try{
-            completer.complete(false);
-            _logger.severe("Channel authentication failed");
-          }catch(e){
-            _logger.severe("Received error msg from server after authentication success!");
-            _logger.severe(json['error']);
+          _logger.severe("Channel authentication failed");
+          if (!completer.isCompleted) {
+            completer.completeError(
+              const BucketsAuthException(),
+            );
           }
         }else if(json['type'] == 'authentication'){
           if (json['data']['authentication'] == 'Success'){
-            try{
+            _logger.fine("Channel authentication success");
+            if (!completer.isCompleted) {
               completer.complete(true);
-              _logger.fine("Channel authentication success");
-            }catch(e){
-              _logger.warning("Received duplicate authentication success event!");
             }
           }else{
-            try{
-              completer.complete(false);
-              _logger.severe("Channel authentication failed");
-            }catch(e){
-              _logger.warning("Received back to back failure events!");
+            _logger.severe("Channel authentication failed");
+            if (!completer.isCompleted) {
+              completer.completeError(
+                const BucketsAuthException(),
+              );
             }
           }
         }
       });
       await authenticate(_channel!);
 
-      // returns false or true based on auth result.
-      return completer.future;
+      return completer.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          _logger.severe("WS Auth timeout — server did not respond in time");
+          throw const BucketsAuthTimeoutException();
+        },
+      );
     }on SocketException catch(e, stackTrace){
       _logger.severe("Channel SocketException: ", e, stackTrace);
-      completer.complete(false);
+      if (!completer.isCompleted) {
+        completer.completeError(
+          BucketsConnectionException(cause: e),
+        );
+      }
     } catch(e, stackTrace){
       _logger.severe("Channel Unknown Exception: ", e, stackTrace);
-      completer.complete(false);
+      if (!completer.isCompleted) {
+        completer.completeError(
+          BucketsUnknownException(cause: e),
+        );
+      }
     }
+
     return completer.future;
+  }
+
+  void _onWsClosed(int? closeCode) {
+    const normalCloseCodes = [1000, 1001];
+    if (normalCloseCodes.contains(closeCode)) {
+      _logger.info("WS closed cleanly — no retry");
+    } else {
+      _logger.warning("WS closed unexpectedly (code: $closeCode) — signalling retry");
+      // this feeds back into _retryConnection via the onDone handler in snapshots()
+    }
   }
 
   Future<dynamic> updateChannel() async {
@@ -73,30 +117,37 @@ class WSHandler{
     try{
       await uws.ready;
       _logger.fine("_updateChannel WS Connection Success");
+
       uws.stream.listen((event) {
-        Map<String, dynamic> json = jsonDecode(event);
-        if (json['type'] == 'error'){
-          completer.complete(null);
-          _logger.severe("_updateChannel authentication failed");
-        }else if(json['type'] == 'authentication'){
-          if (json['data']['authentication'] == 'Success'){
-            completer.complete(uws);
-            _logger.severe("_updateChannel authentication success");
-          }else{
-            completer.complete(null);
+        try{
+          final json = jsonDecode(event);
+          if (json['type'] == 'error'){
             _logger.severe("_updateChannel authentication failed");
+            completer.complete(null);
+            if (!completer.isCompleted) completer.complete(null);
+          }else if(json['type'] == 'authentication'){
+            if (json['data']['authentication'] == 'Success'){
+              _logger.severe("_updateChannel authentication success");
+              if (!completer.isCompleted) completer.complete(uws);
+            }else{
+              _logger.severe("_updateChannel authentication failed");
+              if (!completer.isCompleted) completer.complete(null);
+            }
           }
+        }catch(e){
+          _logger.severe("_updateChannel parse error", e);
+          if (!completer.isCompleted) completer.complete(null);
         }
       });
       await authenticate(uws);
       _logger.fine("_updateChannel WS Authentication Sent");
       return completer.future;
     }on SocketException catch(e, stackTrace){
-      _logger.severe("_updateChannel SocketException: ", e, stackTrace);
-      completer.complete(null);
+      _logger.severe("_updateChannel SocketException", e, stackTrace);
+      if (!completer.isCompleted) completer.complete(null);
     } catch(e, stackTrace){
       _logger.severe("_updateChannel Unknown Exception", e, stackTrace);
-      completer.complete(null);
+      if (!completer.isCompleted) completer.complete(null);
     }
     return completer.future;
   }
@@ -125,7 +176,7 @@ class WSHandler{
     _channel!.sink.add(jsonEncode(message));
   }
 
-  close(){
+  void close(){
     try {
       _channel!.sink.close();
       _logger.fine("Channel Closed!");
